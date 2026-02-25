@@ -30,11 +30,11 @@ export function Dashboard() {
           </ul>
         </section>
         <section className="card">
-          <h2 style={{ margin: '0 0 var(--space-md)', fontSize: '1rem' }}>Quick actions</h2>
+          <h2 style={{ margin: '0 0 var(--space-md)', fontSize: '1rem' }}>Resultados</h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
-            <Link to="/predictions"><button type="button" className="primary">New prediction</button></Link>
-            <Link to="/wheeling"><button type="button">Open wheel</button></Link>
-            <Link to="/backtesting"><button type="button">Backtest</button></Link>
+            <Link to="/resultados/la-primitiva"><button type="button" className="primary">La Primitiva</button></Link>
+            <Link to="/resultados/euromillones"><button type="button">Euromillones</button></Link>
+            <Link to="/resultados/el-gordo"><button type="button">El Gordo</button></Link>
           </div>
         </section>
       </div>
@@ -62,9 +62,9 @@ export function Dashboard() {
           </ul>
         </section>
         <section className="card">
-          <h2 style={{ margin: '0 0 var(--space-md)', fontSize: '1rem' }}>Last predictions / Backtest</h2>
+          <h2 style={{ margin: '0 0 var(--space-md)', fontSize: '1rem' }}>Resultados</h2>
           <p style={{ color: 'var(--color-text-muted)', margin: 0 }}>
-            Placeholder. Generate a prediction or run a backtest to see summary here.
+            Ver sorteos de La Primitiva, Euromillones y El Gordo en el menú.
           </p>
         </section>
       </div>

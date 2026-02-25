@@ -178,10 +178,19 @@ input, select {
 }
 
 .nav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
   padding: var(--space-sm) var(--space-md);
   border-radius: var(--radius);
   color: var(--color-text-muted);
   text-decoration: none;
+}
+.nav-link-icon {
+  width: auto;
+  height: 44px;
+  display: block;
+  object-fit: contain;
 }
 .nav-link:hover {
   color: var(--color-text);

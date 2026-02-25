@@ -2,17 +2,9 @@ import { useState } from 'react';
 import { Link, NavLink, Outlet } from 'react-router-dom';
 
 const navItems = [
-  { to: '/', label: 'Dashboard' },
-  { to: '/resultados/la-primitiva', label: 'La Primitiva' },
-  { to: '/resultados/euromillones', label: 'Euromillones' },
-  { to: '/resultados/el-gordo', label: 'El Gordo' },
-  { to: '/predictions', label: 'Predictions' },
-  { to: '/wheeling', label: 'Wheeling' },
-  { to: '/backtesting', label: 'Backtesting' },
-  { to: '/betting', label: 'Betting' },
-  { to: '/betting/history', label: 'Betting history' },
-  { to: '/data', label: 'Data' },
-  { to: '/settings', label: 'Settings' },
+  { to: '/resultados/la-primitiva', label: 'La Primitiva', icon: '/images/la-primitiva.png' },
+  { to: '/resultados/euromillones', label: 'Euromillones', icon: '/images/euromillones.png' },
+  { to: '/resultados/el-gordo', label: 'El Gordo', icon: '/images/el-gordo.png' },
 ];
 
 export function Layout() {
@@ -37,15 +29,17 @@ export function Layout() {
           <img src="/images/logo_loterias.svg" alt="Lottery Prediction" className="app-logo-img" />
         </Link>
         <nav className={`app-nav ${menuOpen ? 'open' : ''}`} aria-label="Main">
-          {navItems.map(({ to, label }) => (
+          {navItems.map(({ to, label, icon }) => (
             <NavLink
               key={to}
               to={to}
               className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
               end={to === '/'}
               onClick={() => setMenuOpen(false)}
+              title={label}
+              aria-label={label}
             >
-              {label}
+              <img src={icon} alt="" className="nav-link-icon" aria-hidden />
             </NavLink>
           ))}
         </nav>
