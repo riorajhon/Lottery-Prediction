@@ -1,0 +1,304 @@
+:root {
+  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  --radius: 8px;
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+}
+
+/* Light mode (default — match reference image) */
+:root,
+[data-theme="light"] {
+  --color-bg: #f5f5f5;
+  --color-surface: #ffffff;
+  --color-surface-hover: #eeeeee;
+  --color-border: #e0e0e0;
+  --color-text: #1a1a1a;
+  --color-text-muted: #5a6b7d;
+  --color-accent: #00843d;
+  --color-accent-hover: #006b31;
+  --color-success: #22c55e;
+  --color-warning: #eab308;
+  --color-error: #ef4444;
+}
+
+/* Dark mode */
+[data-theme="dark"] {
+  --color-bg: #0f1419;
+  --color-surface: #1a2332;
+  --color-surface-hover: #243044;
+  --color-border: #2d3a4d;
+  --color-text: #e6edf3;
+  --color-text-muted: #8b9cb3;
+  --color-accent: #3b82f6;
+  --color-accent-hover: #2563eb;
+  --color-success: #22c55e;
+  --color-warning: #eab308;
+  --color-error: #ef4444;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background: var(--color-bg);
+  color: var(--color-text);
+  transition: background-color 0.3s ease, color 0.2s ease;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+a {
+  color: var(--color-accent);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+button {
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  padding: var(--space-sm) var(--space-md);
+  font-size: 1rem;
+  font-family: inherit;
+  background: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+button:hover:not(:disabled) {
+  background: var(--color-surface-hover);
+  border-color: var(--color-accent);
+}
+button.primary {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: #fff;
+}
+button.primary:hover:not(:disabled) {
+  background: var(--color-accent-hover);
+}
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+input, select {
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 1rem;
+}
+
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: var(--space-md);
+}
+
+/* App layout */
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-lg);
+  padding: var(--space-md) var(--space-lg);
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  flex-wrap: wrap;
+}
+
+.app-logo {
+  font-weight: 700;
+  font-size: 1.25rem;
+  color: var(--color-text);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+}
+.app-logo:hover {
+  text-decoration: none;
+  color: var(--color-accent);
+}
+.app-logo-img {
+  height: 32px;
+  width: auto;
+  display: block;
+  object-fit: contain;
+}
+
+.app-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+
+.theme-toggle {
+  margin-left: auto;
+  margin-right: var(--space-sm);
+  padding: var(--space-xs) var(--space-sm);
+  font-size: 1.25rem;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  line-height: 1;
+}
+.theme-toggle:hover {
+  background: var(--color-surface-hover);
+}
+
+.nav-link {
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius);
+  color: var(--color-text-muted);
+  text-decoration: none;
+}
+.nav-link:hover {
+  color: var(--color-text);
+  background: var(--color-surface-hover);
+  text-decoration: none;
+}
+.nav-link.active {
+  color: var(--color-accent);
+  background: var(--color-surface-hover);
+}
+
+.menu-toggle {
+  display: none;
+  margin-left: auto;
+}
+
+.app-main {
+  flex: 1;
+  padding: var(--space-lg);
+  max-width: 1400px;
+  width: 100%;
+  margin: 0 auto;
+  animation: fadeIn 0.4s ease-out;
+}
+
+.nav-link,
+.app-logo {
+  transition: color 0.2s ease, background 0.2s ease;
+}
+
+.theme-toggle {
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.page-title {
+  margin: 0 0 var(--space-lg);
+  font-size: 1.5rem;
+}
+
+/* Grid for dashboard cards */
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
+}
+
+/* Table */
+.table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+th, td {
+  padding: var(--space-sm) var(--space-md);
+  text-align: left;
+  border-bottom: 1px solid var(--color-border);
+}
+th {
+  font-weight: 600;
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+tr:last-child td {
+  border-bottom: none;
+}
+tr:hover td {
+  background: var(--color-surface-hover);
+}
+
+/* Form row */
+.form-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-md);
+  margin-bottom: var(--space-md);
+}
+.form-row label {
+  min-width: 100px;
+  color: var(--color-text-muted);
+}
+
+/* Calendar container */
+.calendar-wrap {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: var(--space-md);
+  margin-bottom: var(--space-lg);
+}
+.calendar-wrap .fc {
+  font-size: 0.9rem;
+}
+
+/* Status badge */
+.status-ok { color: var(--color-success); }
+.status-warning { color: var(--color-warning); }
+.status-error { color: var(--color-error); }
+
+@media (max-width: 768px) {
+  .app-nav {
+    display: none;
+  }
+  .menu-toggle {
+    display: block;
+  }
+  .app-nav.open {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    order: 3;
+  }
+}

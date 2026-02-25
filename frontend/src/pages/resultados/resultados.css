@@ -1,0 +1,662 @@
+/* Resultados pages — loteriasyapuestas.es style */
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.resultados-page {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: var(--space-lg);
+  align-items: start;
+  animation: fadeIn 0.35s ease-out;
+}
+
+@media (max-width: 900px) {
+  .resultados-page {
+    grid-template-columns: 1fr;
+  }
+}
+
+.resultados-breadcrumb {
+  margin: 0 0 var(--space-md);
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+}
+
+.resultados-breadcrumb a {
+  color: var(--color-text-muted);
+  text-decoration: none;
+}
+
+.resultados-breadcrumb a {
+  transition: color 0.2s ease;
+}
+.resultados-breadcrumb a:hover {
+  color: var(--color-text);
+  text-decoration: underline;
+}
+
+/* Lottery theme banners and balls */
+.resultados-theme-la-primitiva {
+  --resultados-primary: #00843d;
+  --resultados-primary-dark: #006b31;
+  --resultados-ball-bg: #00843d;
+  --resultados-ball-text: #fff;
+  --resultados-star-bg: #00843d;
+  --resultados-joker-label-color: #c41230;
+  --resultados-joker-code-bg: #e8f5e9;
+  --resultados-joker-code-color: #00843d;
+}
+
+.resultados-theme-euromillones {
+  --resultados-primary: #1976D2;
+  --resultados-primary-dark: #1565C0;
+  --resultados-ball-bg: #1976D2;
+  --resultados-ball-text: #fff;
+  --resultados-star-bg: #FFC107;
+  --resultados-star-text: #1a1a1a;
+  --resultados-card-bg: #212936;
+  --resultados-ver-orden-color: #B0BEC5;
+  --resultados-millon-label-color: #81D4FA;
+}
+
+.resultados-theme-el-gordo {
+  --resultados-primary: #c41230;
+  --resultados-primary-dark: #9a0e26;
+  --resultados-ball-bg: #c41230;
+  --resultados-ball-text: #fff;
+  --resultados-star-bg: #c41230;
+}
+
+/* Jackpot banner */
+.resultados-jackpot-banner {
+  padding: var(--space-lg);
+  margin-bottom: var(--space-lg);
+  border-radius: var(--radius);
+  background: var(--resultados-primary);
+  color: var(--resultados-ball-text);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  animation: fadeInUp 0.45s ease-out;
+}
+
+.resultados-jackpot-banner h2 {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+}
+
+.resultados-jackpot-amount {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+/* Number balls (circles) */
+.resultados-balls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.resultados-ball {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--resultados-ball-bg);
+  color: var(--resultados-ball-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1rem;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+.resultados-draw-card:hover .resultados-ball {
+  transform: scale(1.05);
+}
+
+.resultados-ball.star {
+  background: var(--resultados-star-bg);
+  color: var(--resultados-star-text, var(--resultados-ball-text));
+}
+
+.resultados-ball.complementario,
+.resultados-ball.reintegro,
+.resultados-ball.clave {
+  background: var(--resultados-primary-dark);
+  font-size: 0.9rem;
+}
+
+/* La Primitiva: C = light green circle, dark green border & text; R = dark green circle, white text (reference) */
+.resultados-theme-la-primitiva .resultados-balls-cr .resultados-ball.complementario {
+  background: #e8f5e9;
+  color: var(--resultados-primary);
+  border: 2px solid var(--resultados-primary);
+}
+.resultados-theme-la-primitiva .resultados-balls-cr .resultados-ball.reintegro {
+  background: var(--resultados-primary);
+  color: var(--resultados-ball-text);
+}
+
+/* Draw card (list item) */
+.resultados-draw-list .resultados-draw-card {
+  animation: fadeInUp 0.4s ease-out both;
+}
+.resultados-draw-list .resultados-draw-card:nth-child(1) { animation-delay: 0.05s; }
+.resultados-draw-list .resultados-draw-card:nth-child(2) { animation-delay: 0.1s; }
+.resultados-draw-list .resultados-draw-card:nth-child(3) { animation-delay: 0.15s; }
+.resultados-draw-list .resultados-draw-card:nth-child(4) { animation-delay: 0.2s; }
+.resultados-draw-list .resultados-draw-card:nth-child(5) { animation-delay: 0.25s; }
+.resultados-draw-list .resultados-draw-card:nth-child(n+6) { animation-delay: 0.3s; }
+
+.resultados-draw-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  margin-bottom: var(--space-md);
+  overflow: hidden;
+  transition: box-shadow 0.25s ease, transform 0.25s ease;
+}
+.resultados-draw-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+[data-theme="dark"] .resultados-draw-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.resultados-theme-euromillones .resultados-draw-card {
+  background: var(--resultados-card-bg, var(--color-surface));
+  border-color: rgba(255,255,255,0.08);
+}
+
+.resultados-draw-card-header {
+  padding: var(--space-sm) var(--space-md);
+  background: var(--resultados-primary);
+  color: var(--resultados-ball-text);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+.resultados-draw-card-header .lottery-name,
+.resultados-draw-card-header .resultados-header-logo {
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.resultados-header-logo {
+  height: 28px;
+  width: auto;
+  display: block;
+  object-fit: contain;
+}
+
+.resultados-draw-card-date {
+  font-size: 0.9rem;
+  opacity: 0.95;
+}
+
+.resultados-draw-card-body {
+  padding: var(--space-md);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.resultados-theme-euromillones .resultados-draw-card-body {
+  background: var(--resultados-card-bg, var(--color-surface));
+}
+
+[data-theme="light"] .resultados-theme-euromillones .resultados-draw-card-body {
+  background: var(--color-surface);
+}
+
+.resultados-draw-card-body .resultados-balls {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Column layout for all lotteries (like Euromillones) */
+.resultados-draw-card-body.resultados-draw-card-column {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-sm);
+}
+
+.resultados-ver-orden {
+  margin: 0 0 var(--space-xs);
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+}
+
+.resultados-theme-euromillones .resultados-ver-orden {
+  color: var(--resultados-ver-orden-color, #B0BEC5);
+}
+
+.resultados-ver-orden-toggle {
+  cursor: pointer;
+  transition: color 0.2s ease, opacity 0.2s ease;
+}
+.resultados-ver-orden-toggle:hover {
+  text-decoration: underline;
+  opacity: 0.9;
+}
+
+/* Hover zone for all lotteries: "Ver por orden de aparición" toggles number order */
+.resultados-draw-hover-zone {
+  cursor: pointer;
+  padding: var(--space-xs) 0;
+  margin: calc(-1 * var(--space-xs)) 0;
+  width: 100%;
+}
+
+.resultados-draw-balls-row {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: var(--space-md);
+  width: 100%;
+}
+
+.resultados-draw-balls-row .resultados-balls-main {
+  display: flex;
+  gap: var(--space-sm);
+  flex: 0 0 auto;
+}
+
+.resultados-draw-balls-row .resultados-balls-stars {
+  display: flex;
+  gap: var(--space-sm);
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+
+/* La Primitiva: C and R on the right of main numbers, label above each (reference layout) */
+.resultados-balls-cr {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-md);
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+.resultados-cr-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xs);
+}
+.resultados-cr-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--resultados-primary);
+}
+
+/* El Gordo: N° CLAVE on the right of main numbers (reference layout) */
+.resultados-balls-clave {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xs);
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+.resultados-clave-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+.resultados-theme-el-gordo .resultados-ball.clave {
+  background: var(--resultados-primary-dark);
+  color: var(--resultados-ball-text);
+}
+
+.resultados-theme-euromillones .resultados-draw-balls-row .resultados-ball {
+  border: 2px solid rgba(255,255,255,0.9);
+}
+
+.resultados-ball-star-wrap {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.resultados-star-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.resultados-star-num {
+  position: relative;
+  z-index: 1;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #1a1a1a;
+}
+
+.resultados-euromillones-row .resultados-ball.star {
+  background: var(--resultados-star-bg);
+  color: var(--resultados-star-text, #1a1a1a);
+}
+
+/* EL MILLÓN row: label (image 2 color #81D4FA) + code in white box (image 1: dark blue text, light border, shadow) */
+.resultados-millon-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin-top: var(--space-sm);
+}
+
+.resultados-millon-logo {
+  height: 21px;
+  width: auto;
+  display: block;
+  flex-shrink: 0;
+}
+
+.resultados-theme-euromillones .resultados-millon-label-text {
+  color: var(--resultados-millon-label-color, #81D4FA);
+  font-size: 1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.resultados-millon-code-box {
+  background: #fff;
+  color: #002288;
+  padding: var(--space-sm) var(--space-md);
+  border-radius: 6px;
+  border: 1px solid #d0d0d0;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.resultados-theme-euromillones .resultados-millon-code-box {
+  color: #1a1a1a;
+  font-weight: 700;
+}
+
+/* La Primitiva Joker row: red JOKER + green number box (reference image) */
+.resultados-joker-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin-top: var(--space-sm);
+}
+
+.resultados-joker-logo {
+  height: 24px;
+  width: auto;
+  display: block;
+  flex-shrink: 0;
+}
+
+.resultados-joker-label {
+  color: var(--resultados-joker-label-color, #c41230);
+  font-size: 1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.resultados-joker-code-box {
+  background: var(--resultados-joker-code-bg, #e8f5e9);
+  color: var(--resultados-joker-code-color, #00843d);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: 6px;
+  border: 1px solid rgba(0,132,61,0.25);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.resultados-info-btn {
+  padding: var(--space-xs) var(--space-sm);
+  font-size: 0.85rem;
+  background: transparent;
+  transition: background 0.2s ease;
+  border: 1px solid var(--resultados-ball-text);
+  color: var(--resultados-ball-text);
+  border-radius: 4px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.resultados-info-btn:hover {
+  background: rgba(255,255,255,0.15);
+}
+
+.resultados-millon {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  margin-top: var(--space-xs);
+}
+
+/* Sidebar BUSCAR SORTEOS */
+.resultados-sidebar {
+  position: sticky;
+  top: var(--space-lg);
+  animation: fadeIn 0.4s ease-out 0.15s both;
+}
+
+.resultados-sidebar-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: var(--space-md);
+  margin-bottom: var(--space-md);
+  transition: box-shadow 0.2s ease;
+}
+.resultados-sidebar-card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+[data-theme="dark"] .resultados-sidebar-card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.resultados-sidebar-card h3 {
+  margin: 0 0 var(--space-md);
+  font-size: 1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--color-text-muted);
+}
+
+.resultados-search-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.resultados-search-form label {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-xs);
+}
+
+.resultados-search-form input {
+  width: 100%;
+}
+
+.resultados-search-form .btn-buscar {
+  width: 100%;
+  background: var(--resultados-primary);
+  border-color: var(--resultados-primary);
+  color: var(--resultados-ball-text);
+  font-weight: 600;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+.resultados-search-form .btn-buscar:hover:not(:disabled) {
+  background: var(--resultados-primary-dark);
+  border-color: var(--resultados-primary-dark);
+}
+
+/* Estadísticas link */
+.resultados-stats-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-md);
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+
+.resultados-stats-link:hover {
+  color: var(--color-accent);
+}
+
+/* Expand section (replaces modal) */
+.resultados-draw-card-expand {
+  border-top: 1px solid var(--color-border);
+  padding: var(--space-md);
+  background: var(--color-surface-hover);
+  animation: fadeIn 0.3s ease-out;
+}
+
+.resultados-draw-card-expand .resultados-detail-stats {
+  margin-top: var(--space-md);
+}
+
+.resultados-detail-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-sm);
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  margin-top: var(--space-md);
+}
+
+.resultados-detail-stats dt {
+  margin: 0;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.resultados-detail-stats dd {
+  margin: 0 0 var(--space-xs);
+}
+
+/* EL MILLÓN banner at top of +Info modal (match reference image) */
+.resultados-detail-millon-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin-bottom: var(--space-md);
+}
+
+.resultados-detail-millon-banner .resultados-millon-label-text {
+  font-size: 1.1rem;
+}
+
+/* Estadísticas (escrutinio) table in +Info modal — match reference image */
+.resultados-escrutinio-wrap {
+  margin-top: var(--space-md);
+  margin-bottom: var(--space-md);
+}
+
+.resultados-escrutinio-title {
+  margin: 0 0 var(--space-sm);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.resultados-escrutinio-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.resultados-escrutinio-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.resultados-escrutinio-table th,
+.resultados-escrutinio-table td {
+  padding: var(--space-xs) var(--space-sm);
+  border-bottom: 1px solid var(--color-border);
+  text-align: center;
+}
+
+.resultados-escrutinio-table th {
+  font-weight: 600;
+  color: var(--color-text-muted);
+  background: var(--color-surface-hover);
+}
+
+.resultados-escrutinio-num {
+  text-align: center;
+}
+
+.resultados-escrutinio-table tbody tr:nth-child(even) td {
+  background: var(--color-surface-hover);
+}
+
+.resultados-escrutinio-table tr:last-child td {
+  border-bottom: none;
+}
+
+.resultados-escrutinio-disclaimer {
+  margin: var(--space-sm) 0 0;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.resultados-loading,
+.resultados-empty {
+  color: var(--color-text-muted);
+  padding: var(--space-lg);
+  text-align: center;
+}
+
+.resultados-pagination {
+  margin-top: var(--space-md);
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+}
+
+.resultados-pagination button {
+  padding: var(--space-sm) var(--space-md);
+}
+
+.resultados-pagination button:disabled {
+  opacity: 0.5;
+}
