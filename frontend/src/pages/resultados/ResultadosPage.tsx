@@ -109,7 +109,6 @@ export function ResultadosPage({ lottery }: ResultadosPageProps) {
     totalPages,
     nextPage,
     prevPage,
-    PAGE_SIZE,
   } = useDraws(lottery);
 
   const latestJackpot = draws.length > 0 ? draws[0].premio_bote : '';
