@@ -369,7 +369,54 @@ After that, use `https://yourdomain.com` in `VITE_API_URL` if the frontend is on
 
 ---
 
-## 11. Troubleshooting
+## 11. Restart backend after code changes
+
+When you change the backend and push to Git, the VPS won’t see it until you pull and restart.
+
+### Manual: run a deploy script (recommended)
+
+On the VPS, from the repo root:
+
+```bash
+cd ~/Lottery-Prediction   # or /root/Lottery-Prediction if you use root
+sudo chmod +x scripts/deploy-backend.sh
+sudo ./scripts/deploy-backend.sh
+```
+
+The script runs `git pull`, installs backend deps, and restarts `lottery-backend`. Do this after each push that changes the backend.
+
+### Optional: auto pull and restart with cron
+
+To have the VPS pull and restart the backend every 5 minutes only when there are new commits:
+
+```bash
+crontab -e
+```
+
+Add (adjust path if your repo is not in `/root/Lottery-Prediction`):
+
+```
+*/5 * * * * cd /root/Lottery-Prediction && git fetch -q && [ -n "$(git rev-list HEAD..origin/main 2>/dev/null)" ] && git pull -q && /root/Lottery-Prediction/backend/.venv/bin/pip install -q -r /root/Lottery-Prediction/backend/requirements.txt && systemctl restart lottery-backend
+```
+
+Or use the script in the repo (run every 5 minutes):
+
+```bash
+chmod +x /root/Lottery-Prediction/scripts/auto-deploy-backend.sh
+crontab -e
+```
+
+Add (adjust path if your repo is elsewhere):
+
+```
+*/5 * * * * /root/Lottery-Prediction/scripts/auto-deploy-backend.sh
+```
+
+After you push from your PC, the backend will update and restart within about 5 minutes.
+
+---
+
+## 12. Troubleshooting
 
 - **502 from /api/**: Backend not running or wrong port. Check `systemctl status lottery-backend` and `curl http://127.0.0.1:8000/api/health`.
 - **CORS errors in browser**: Add the exact frontend origin (scheme + host) to `allow_origins` in `main.py`.
@@ -380,7 +427,7 @@ Done. Your Lottery-Prediction app should be running on the Ubuntu VPS with API, 
 
 ---
 
-## 12. Test from your Windows PC (no domain)
+## 13. Test from your Windows PC (no domain)
 
 Use your **VPS public IP** (e.g. `203.0.113.50`). Replace it in the steps below.
 
