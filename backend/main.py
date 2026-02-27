@@ -437,6 +437,163 @@ def debug_euromillones_one():
     return JSONResponse(content=_doc_to_json(doc))
 
 
+@app.get("/api/euromillones/features")
+def get_euromillones_features(
+    limit: int = Query(50, ge=1, le=200),
+    skip: int = Query(0, ge=0),
+):
+    """
+    Return per-draw Euromillones feature rows from `euromillones_draw_features`.
+
+    Each document contains:
+      - main_numbers, star_numbers
+      - draw_date, weekday
+      - hot/cold numbers
+      - frequency and gap arrays
+      - previous-draw snapshot fields
+    """
+    if db is None:
+        raise HTTPException(500, detail="Database not connected")
+
+    coll = db["euromillones_draw_features"]
+    total = coll.count_documents({})
+
+    cursor = coll.find().sort("draw_date", -1).skip(skip).limit(limit)
+    docs = [_doc_to_json(doc) for doc in cursor]
+
+    return JSONResponse(content={"features": docs, "total": total})
+
+
+@app.get("/api/euromillones/gaps")
+def get_euromillones_gaps(
+    type: str = Query("main", pattern="^(main|star)$"),
+    end_date: str | None = Query(
+        None,
+        description="YYYY-MM-DD. If not provided, uses today.",
+    ),
+    window_days: int = Query(
+        31,
+        ge=1,
+        le=365,
+        description="Number of days to include ending at end_date.",
+    ),
+):
+    """
+    Return per-number appearance history for Euromillones.
+
+    Response format:
+      {
+        "points": [
+          { "type": "main", "number": 3, "draw_index": 12, "date": "2026-01-24" },
+          ...
+        ]
+      }
+    """
+    if db is None:
+        raise HTTPException(500, detail="Database not connected")
+
+    from datetime import datetime, timedelta
+
+    coll = db["euromillones_number_history"]
+    docs = list(coll.find({"type": type}))
+
+    points: list[dict] = []
+
+    # Determine time window
+    if end_date:
+        try:
+            end_dt = datetime.strptime(end_date, "%Y-%m-%d")
+        except ValueError:
+            raise HTTPException(400, detail="Invalid end_date format, expected YYYY-MM-DD")
+    else:
+        end_dt = datetime.utcnow()
+    start_dt = end_dt - timedelta(days=window_days)
+
+    for doc in docs:
+        number = doc.get("number")
+        appearances = doc.get("appearances") or []
+        for appo in appearances:
+            date_str = (appo.get("date") or "").split(" ")[0]
+            if not date_str:
+                continue
+            try:
+                app_dt = datetime.strptime(date_str, "%Y-%m-%d")
+            except ValueError:
+                continue
+            if not (start_dt <= app_dt <= end_dt):
+                continue
+            points.append(
+                {
+                    "type": type,
+                    "number": number,
+                    "draw_index": appo.get("draw_index"),
+                    "date": date_str,
+                }
+            )
+
+    # Sort points by date ascending so charts have ordered Y-axis
+    points.sort(key=lambda p: p.get("date") or "")
+
+    return JSONResponse(content={"points": points})
+
+
+@app.get("/api/euromillones/number-history")
+def get_euromillones_number_history():
+    """
+    Return full per-number appearance history for Euromillones, grouped by type.
+
+    Response format:
+      {
+        "main": [
+          { "number": 1, "dates": ["2026-01-13", "2026-01-27", ...] },
+          ...
+        ],
+        "star": [
+          { "number": 1, "dates": ["2026-01-20", ...] },
+          ...
+        ]
+      }
+    """
+    if db is None:
+        raise HTTPException(500, detail="Database not connected")
+
+    coll = db["euromillones_number_history"]
+
+    docs = list(
+        coll.find(
+            {},
+            projection={
+                "_id": 0,
+                "type": 1,
+                "number": 1,
+                "appearances.date": 1,
+            },
+        )
+    )
+
+    main: list[dict] = []
+    star: list[dict] = []
+
+    for doc in docs:
+        t = doc.get("type")
+        number = doc.get("number")
+        appearances = doc.get("appearances") or []
+
+        dates_set: set[str] = set()
+        for appo in appearances:
+            date_str = (appo.get("date") or "").split(" ")[0]
+            if date_str:
+                dates_set.add(date_str)
+
+        dates = sorted(dates_set)
+
+        target = main if t == "main" else star if t == "star" else None
+        if target is not None:
+            target.append({"number": number, "dates": dates})
+
+    return JSONResponse(content={"main": main, "star": star})
+
+
 @app.post("/api/scrape/daily")
 def scrape_daily():
     """

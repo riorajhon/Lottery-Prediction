@@ -14,6 +14,7 @@ if _script_dir not in sys.path:
     sys.path.insert(0, _script_dir)
 
 from backfill_common import run_daily
+from update_euromillones_features_incremental import main as update_euromillones_features
 
 
 def next_00_02():
@@ -31,6 +32,21 @@ if __name__ == "__main__":
     try:
         results = run_daily()
         print("Scrape done.", results)
+        # If Euromillones got new draws, update features and histories
+        euromillones_saved = next(
+            (r.get("saved", 0) for r in results if r.get("lottery") == "euromillones"),
+            0,
+        )
+        if euromillones_saved:
+            print(
+                f"Euromillones: {euromillones_saved} new draws saved. "
+                "Updating features and histories..."
+            )
+            try:
+                update_euromillones_features()
+                print("Euromillones features/histories updated.")
+            except Exception as e:
+                print(f"Error updating Euromillones features/histories: {e}")
     except Exception as e:
         print(f"Scrape error: {e}")
     print("\nWaiting for next 00:02 to run again.\n")
@@ -49,6 +65,20 @@ if __name__ == "__main__":
         try:
             results = run_daily()
             print("Daily scrape done.", results)
+            euromillones_saved = next(
+                (r.get("saved", 0) for r in results if r.get("lottery") == "euromillones"),
+                0,
+            )
+            if euromillones_saved:
+                print(
+                    f"Euromillones: {euromillones_saved} new draws saved. "
+                    "Updating features and histories..."
+                )
+                try:
+                    update_euromillones_features()
+                    print("Euromillones features/histories updated.")
+                except Exception as e:
+                    print(f"Error updating Euromillones features/histories: {e}")
         except Exception as e:
             print(f"Scrape error: {e}")
         print("Waiting for next 00:02.\n")
