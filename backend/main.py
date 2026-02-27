@@ -362,6 +362,13 @@ DRAW_KEYS = (
     "joker_combinacion",
     "premio_bote",
     "escrutinio",
+    # Euromillones extra stats (if present in DB)
+    "apuestas",  # bets received
+    "aquestas",  # fallback name if mis-typed in DB
+    "recaudacion",
+    "recaudacion_europea",
+    "premios",
+    "escrutinio_millon",
 )
 
 
@@ -536,6 +543,222 @@ def get_euromillones_gaps(
 
     return JSONResponse(content={"points": points})
 
+
+@app.get("/api/euromillones/apuestas")
+def get_euromillones_apuestas(
+    window: str = Query(
+        "3m",
+        pattern="^(3m|6m|1y|all)$",
+        description="Time window: last 3m, 6m, 1y or all history.",
+    ),
+):
+    """
+    Time series for Euromillones apuestas / premios / premio_bote.
+
+    Returns draws ordered ascending by fecha_sorteo. Each point:
+      {
+        "draw_id": "...",
+        "date": "YYYY-MM-DD",
+        "apuestas": int | null,
+        "premios": float | null,
+        "premio_bote": float | null
+      }
+    """
+    if db is None:
+        raise HTTPException(500, detail="Database not connected")
+
+    from datetime import datetime, timedelta
+
+    coll = db["euromillones"]
+
+    # Determine date window
+    if window == "all":
+        query: dict = {}
+    else:
+        today = datetime.utcnow().date()
+        if window == "3m":
+            delta_days = 90
+        elif window == "6m":
+            delta_days = 180
+        else:  # "1y"
+            delta_days = 365
+        start_date = today - timedelta(days=delta_days)
+        query = {
+            "fecha_sorteo": {
+                "$gte": start_date.strftime("%Y-%m-%d") + " 00:00:00",
+                "$lte": today.strftime("%Y-%m-%d") + " 23:59:59",
+            }
+        }
+
+    cursor = coll.find(
+        query,
+        projection={
+            "id_sorteo": 1,
+            "fecha_sorteo": 1,
+            "apuestas": 1,
+            "aquestas": 1,
+            "premio_bote": 1,
+            "premios": 1,
+        },
+    ).sort("fecha_sorteo", 1)
+
+    points: list[dict] = []
+    for doc in cursor:
+        draw_id = str(doc.get("id_sorteo"))
+        fecha_full = (doc.get("fecha_sorteo") or "").strip()
+        if not draw_id or not fecha_full:
+            continue
+        date = fecha_full.split(" ")[0]
+
+        raw_apuestas = doc.get("apuestas")
+        if raw_apuestas in (None, ""):
+            raw_apuestas = doc.get("aquestas")
+        try:
+            apuestas = int(str(raw_apuestas).replace(".", "").replace(",", "")) if raw_apuestas not in (None, "") else None
+        except Exception:
+            apuestas = None
+
+        def _to_float(val):
+            if val in (None, ""):
+                return None
+            try:
+                s = str(val).replace(".", "").replace(",", ".")
+                return float(s)
+            except Exception:
+                return None
+
+        premios = _to_float(doc.get("premios"))
+        if premios is not None:
+            # Valores de premios vienen 100x; normalizar a euros reales
+            premios = premios / 100.0
+        premio_bote = _to_float(doc.get("premio_bote"))
+
+        points.append(
+            {
+                "draw_id": draw_id,
+                "date": date,
+                "apuestas": apuestas,
+                "premios": premios,
+                "premio_bote": premio_bote,
+            }
+        )
+
+    return JSONResponse(content={"points": points})
+
+
+def _apuestas_time_series_for_lottery(lottery_slug: str, window: str):
+    """
+    Helper to build apuestas / premios / premio_bote time series for a given lottery.
+    lottery_slug: 'la-primitiva' | 'el-gordo'
+    """
+    if db is None:
+        raise HTTPException(500, detail="Database not connected")
+
+    from datetime import datetime, timedelta
+
+    game_id = GAME_IDS.get(lottery_slug)
+    if not game_id:
+        raise HTTPException(400, detail=f"Unknown lottery: {lottery_slug}")
+    coll_name = COLLECTIONS.get(game_id)
+    if not coll_name:
+        raise HTTPException(400, detail=f"No collection for lottery: {lottery_slug}")
+
+    coll = db[coll_name]
+
+    # Determine date window
+    if window == "all":
+        query: dict = {}
+    else:
+        today = datetime.utcnow().date()
+        if window == "3m":
+            delta_days = 90
+        elif window == "6m":
+            delta_days = 180
+        else:  # "1y"
+            delta_days = 365
+        start_date = today - timedelta(days=delta_days)
+        query = {
+            "fecha_sorteo": {
+                "$gte": start_date.strftime("%Y-%m-%d") + " 00:00:00",
+                "$lte": today.strftime("%Y-%m-%d") + " 23:59:59",
+            }
+        }
+
+    cursor = coll.find(
+        query,
+        projection={
+            "id_sorteo": 1,
+            "fecha_sorteo": 1,
+            "apuestas": 1,
+            "recaudacion": 1,
+            "premio_bote": 1,
+            "premios": 1,
+        },
+    ).sort("fecha_sorteo", 1)
+
+    def _to_float(val):
+        if val in (None, ""):
+            return None
+        try:
+            s = str(val).replace(".", "").replace(",", ".")
+            return float(s)
+        except Exception:
+            return None
+
+    points: list[dict] = []
+    for doc in cursor:
+        draw_id = str(doc.get("id_sorteo"))
+        fecha_full = (doc.get("fecha_sorteo") or "").strip()
+        if not draw_id or not fecha_full:
+            continue
+        date = fecha_full.split(" ")[0]
+
+        raw_apuestas = doc.get("apuestas")
+        try:
+            apuestas = int(str(raw_apuestas).replace(".", "").replace(",", "")) if raw_apuestas not in (None, "") else None
+        except Exception:
+            apuestas = None
+
+        premios = _to_float(doc.get("premios"))
+        if premios is not None:
+            premios = premios / 100.0
+        premio_bote = _to_float(doc.get("premio_bote"))
+
+        points.append(
+            {
+                "draw_id": draw_id,
+                "date": date,
+                "apuestas": apuestas,
+                "premios": premios,
+                "premio_bote": premio_bote,
+            }
+        )
+
+    return points
+
+
+@app.get("/api/la-primitiva/apuestas")
+def get_la_primitiva_apuestas(
+    window: str = Query(
+        "3m",
+        pattern="^(3m|6m|1y|all)$",
+        description="Time window: last 3m, 6m, 1y or all history.",
+    ),
+):
+    points = _apuestas_time_series_for_lottery("la-primitiva", window)
+    return JSONResponse(content={"points": points})
+
+
+@app.get("/api/el-gordo/apuestas")
+def get_el_gordo_apuestas(
+    window: str = Query(
+        "3m",
+        pattern="^(3m|6m|1y|all)$",
+        description="Time window: last 3m, 6m, 1y or all history.",
+    ),
+):
+    points = _apuestas_time_series_for_lottery("el-gordo", window)
+    return JSONResponse(content={"points": points})
 
 @app.get("/api/euromillones/number-history")
 def get_euromillones_number_history():

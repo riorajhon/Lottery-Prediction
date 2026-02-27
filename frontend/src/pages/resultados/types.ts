@@ -20,6 +20,13 @@ export interface Draw {
   joker_combinacion?: string | null;
   premio_bote: string;
   escrutinio?: EscrutinioRow[] | null;
+  // Euromillones extra stats (if present)
+  apuestas?: string | number | null;
+  aquestas?: string | number | null;
+  recaudacion?: string | number | null;
+  recaudacion_europea?: string | number | null;
+  premios?: string | number | null;
+  escrutinio_millon?: EscrutinioRow[] | null;
 }
 
 export type LotterySlug = 'la-primitiva' | 'euromillones' | 'el-gordo';

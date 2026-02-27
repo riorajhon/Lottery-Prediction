@@ -14,9 +14,18 @@ loop all data
     and next number refer previouse data
 and save this to DB
 
-in build_euromillones_features.py
-for Pair/trio occurrence statistics
-with previouse main number and star calculate all available combinations(pair, trio)
-and make data {pair/trio, appearance(date, gap)} like number history and save this to new model
-loop all Euromillones and if exist pair/trio update or don't exist make new
- so on feature model don't need frequency items and pair/trio items
+on euromillones main result page extend add like this image
+on db exist aquestas,recaudacion,recaudacion_europea,prmios,escutinio_millon,premio_bote items
+using this make
+
+apuestas
+premios
+
+premio_bote
+escrutinio
+
+from euromillones(model) get data with (Last 3 months / 6 months / 1 year / all.) 
+      only apuestas,premios, premio_bote, escrutinio for draw every chart
+and make new tab and draw chart on result page with your recommended 
+add some selection buttons for implement your recommended chart
+with this start coding

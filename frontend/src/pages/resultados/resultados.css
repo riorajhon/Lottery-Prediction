@@ -302,6 +302,58 @@
   overflow-x: auto;
 }
 
+.resultados-apuestas-card {
+  overflow-x: hidden;
+}
+
+.resultados-apuestas-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+}
+
+.resultados-apuestas-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-end;
+}
+
+.resultados-apuestas-window-toggle {
+  display: inline-flex;
+  gap: var(--space-xs);
+}
+
+.resultados-apuestas-weekday-toggle {
+  display: inline-flex;
+  gap: var(--space-xs);
+}
+
+.resultados-apuestas-subtitle {
+  margin: var(--space-md) 0 var(--space-xs);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.resultados-apuestas-window-btn {
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  padding: 4px 10px;
+  font-size: 0.8rem;
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.resultados-apuestas-window-btn--active {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: #fff;
+}
+
 .resultados-features-table-wrap {
   width: 100%;
   overflow-x: auto;
@@ -853,6 +905,27 @@
 
 .resultados-detail-stats dd {
   margin: 0 0 var(--space-xs);
+}
+
+.resultados-detail-stats--euromillones {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.resultados-detail-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto 1fr;
+  column-gap: var(--space-sm);
+}
+
+.resultados-detail-label {
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.resultados-detail-value {
+  text-align: right;
 }
 
 /* EL MILLÓN banner at top of +Info modal (match reference image) */

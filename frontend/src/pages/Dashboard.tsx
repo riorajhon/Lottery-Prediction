@@ -62,11 +62,11 @@ export function Dashboard() {
 
   return (
     <>
-      <h1 className="page-title">Dashboard</h1>
+      <h1 className="page-title">Panel</h1>
 
       <div className="cards-grid">
         <section className="card">
-          <h2 style={{ margin: '0 0 var(--space-md)', fontSize: '1rem' }}>Next draws</h2>
+          <h2 style={{ margin: '0 0 var(--space-md)', fontSize: '1rem' }}>Próximos sorteos</h2>
           <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
             {NEXT_DRAWS.map((d) => (
               <li key={d.lottery} style={{ padding: 'var(--space-xs) 0' }}>
@@ -76,7 +76,7 @@ export function Dashboard() {
           </ul>
         </section>
         <section className="card">
-          <h2 style={{ margin: '0 0 var(--space-md)', fontSize: '1rem' }}>Data status</h2>
+          <h2 style={{ margin: '0 0 var(--space-md)', fontSize: '1rem' }}>Estado de datos</h2>
           <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
             {MOCK_DATA_STATUS.map((row) => (
               <li key={row.lottery} style={{ padding: 'var(--space-xs) 0' }}>
@@ -106,7 +106,7 @@ export function Dashboard() {
       </div>
 
       <section className="card" style={{ marginTop: 'var(--space-lg)' }}>
-        <h2 style={{ margin: '0 0 var(--space-md)', fontSize: '1rem' }}>Euromillones frequency (test)</h2>
+        <h2 style={{ margin: '0 0 var(--space-md)', fontSize: '1rem' }}>Frecuencias Euromillones (test)</h2>
         {freqError && (
           <p style={{ color: 'var(--color-error)', marginTop: 0 }}>{freqError}</p>
         )}
@@ -163,7 +163,7 @@ export function Dashboard() {
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-lg)', marginTop: 'var(--space-lg)' }}>
         <section className="card">
-          <h2 style={{ margin: '0 0 var(--space-md)', fontSize: '1rem' }}>Recent results</h2>
+          <h2 style={{ margin: '0 0 var(--space-md)', fontSize: '1rem' }}>Últimos resultados</h2>
           <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
             {MOCK_DRAWS.slice(0, 3).map((d) => (
               <li key={d.id} style={{ padding: 'var(--space-sm) 0', borderBottom: '1px solid var(--color-border)' }}>

@@ -43,6 +43,25 @@ function formatGanadores(val: string | null | undefined): string {
   return n.toLocaleString('es-ES');
 }
 
+/** Generic formatter for integer-like counts (e.g. apuestas recibidas) */
+function formatEntero(val: string | number | null | undefined): string {
+  if (val == null || val === '') return '—';
+  const n = Number(String(val).replace(/\./g, '').replace(',', '.'));
+  if (Number.isNaN(n)) return String(val);
+  return n.toLocaleString('es-ES', { maximumFractionDigits: 0 });
+}
+
+/** Generic formatter for euro totals (recaudación, premios, etc.) */
+function formatEuroTotal(val: string | number | null | undefined): string {
+  if (val == null || val === '') return '—';
+  const s = String(val).replace(',', '.');
+  const n = Number(s);
+  if (Number.isNaN(n)) {
+    return String(val).includes('€') ? String(val) : `${val} €`;
+  }
+  return `${n.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
+}
+
 /** Joker number with spaces as thousands separator (e.g. 5580403 -> "5 580 403") */
 function formatJokerNumber(val: string | null | undefined): string {
   if (val == null || val === '') return '—';
@@ -258,6 +277,7 @@ function DrawCard({
   const themeClass = `resultados-theme-${config.theme}`;
   const [hoverOrden, setHoverOrden] = useState(false);
   const escrutinio = draw.escrutinio || [];
+  const escrutinioMillon = lottery === 'euromillones' ? (draw.escrutinio_millon || []) : [];
 
   const mainNumbers: number[] = [];
   const starNumbers: number[] = [];
@@ -452,10 +472,128 @@ function DrawCard({
               <p className="resultados-escrutinio-disclaimer">Sin acertantes del premio especial</p>
             )}
           </div>
-          <dl className="resultados-detail-stats">
-            <dt>Bote publicitado</dt>
-            <dd>{draw.premio_bote ? `${Number(draw.premio_bote).toLocaleString('es-ES')} €` : '—'}</dd>
-          </dl>
+
+          {lottery === 'euromillones' && escrutinioMillon.length > 0 && (
+            <div className="resultados-detail-millon-banner">
+              <h4 className="resultados-escrutinio-title">El Millón</h4>
+              <div className="resultados-escrutinio-table-wrap">
+                <table className="resultados-escrutinio-table">
+                  <thead>
+                    <tr>
+                      <th>El Millón</th>
+                      <th>Acertantes</th>
+                      <th>Premios</th>
+                      <th>Agraciados</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {escrutinioMillon.map((row, i) => (
+                      <tr key={i}>
+                        <td>Ganador</td>
+                        <td className="resultados-escrutinio-num">{formatGanadores(row.ganadores)}</td>
+                        <td className="resultados-escrutinio-num">{formatPremio(row.premio)}</td>
+                        <td className="resultados-escrutinio-num">{row.agraciados_espana ?? '—'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {lottery === 'euromillones' ? (
+            <div className="resultados-detail-stats resultados-detail-stats--euromillones">
+              <div className="resultados-detail-row">
+                <span className="resultados-detail-label">Apuestas recibidas:</span>
+                <span className="resultados-detail-value">
+                  {formatEntero((draw.apuestas ?? draw.aquestas) as any)}
+                </span>
+                <span className="resultados-detail-label">Bote publicitado:</span>
+                <span className="resultados-detail-value">
+                  {draw.premio_bote
+                    ? `${Number(draw.premio_bote).toLocaleString('es-ES')} €`
+                    : '—'}
+                </span>
+              </div>
+              <div className="resultados-detail-row">
+                <span className="resultados-detail-label">Recaudación:</span>
+                <span className="resultados-detail-value">
+                  {formatEuroTotal(draw.recaudacion as any)}
+                </span>
+                <span className="resultados-detail-label">Premios:</span>
+                <span className="resultados-detail-value">
+                  {formatEuroTotal(draw.premios as any)}
+                </span>
+              </div>
+              <div className="resultados-detail-row">
+                <span className="resultados-detail-label">Recaudación europea:</span>
+                <span className="resultados-detail-value">
+                  {formatEuroTotal(draw.recaudacion_europea as any)}
+                </span>
+                <span className="resultados-detail-label" />
+                <span className="resultados-detail-value" />
+              </div>
+            </div>
+          ) : lottery === 'el-gordo' ? (
+            <div className="resultados-detail-stats resultados-detail-stats--euromillones">
+              <div className="resultados-detail-row">
+                <span className="resultados-detail-label">Apuestas recibidas:</span>
+                <span className="resultados-detail-value">
+                  {formatEntero(draw.apuestas as any)}
+                </span>
+                <span className="resultados-detail-label">Bote publicitado:</span>
+                <span className="resultados-detail-value">
+                  {draw.premio_bote
+                    ? `${Number(draw.premio_bote).toLocaleString('es-ES')} €`
+                    : '—'}
+                </span>
+              </div>
+              <div className="resultados-detail-row">
+                <span className="resultados-detail-label">Recaudación:</span>
+                <span className="resultados-detail-value">
+                  {formatEuroTotal(draw.recaudacion as any)}
+                </span>
+                <span className="resultados-detail-label">Premios:</span>
+                <span className="resultados-detail-value">
+                  {formatEuroTotal(draw.premios as any)}
+                </span>
+              </div>
+            </div>
+          ) : lottery === 'la-primitiva' ? (
+            <div className="resultados-detail-stats resultados-detail-stats--euromillones">
+              <div className="resultados-detail-row">
+                <span className="resultados-detail-label">Apuestas recibidas:</span>
+                <span className="resultados-detail-value">
+                  {formatEntero(draw.apuestas as any)}
+                </span>
+                <span className="resultados-detail-label">Bote publicitado:</span>
+                <span className="resultados-detail-value">
+                  {draw.premio_bote
+                    ? `${Number(draw.premio_bote).toLocaleString('es-ES')} €`
+                    : '—'}
+                </span>
+              </div>
+              <div className="resultados-detail-row">
+                <span className="resultados-detail-label">Recaudación:</span>
+                <span className="resultados-detail-value">
+                  {formatEuroTotal(draw.recaudacion as any)}
+                </span>
+                <span className="resultados-detail-label">Premios:</span>
+                <span className="resultados-detail-value">
+                  {formatEuroTotal(draw.premios as any)}
+                </span>
+              </div>
+            </div>
+          ) : (
+            <dl className="resultados-detail-stats">
+              <dt>Bote publicitado</dt>
+              <dd>
+                {draw.premio_bote
+                  ? `${Number(draw.premio_bote).toLocaleString('es-ES')} €`
+                  : '—'}
+              </dd>
+            </dl>
+          )}
         </div>
       )}
     </article>
