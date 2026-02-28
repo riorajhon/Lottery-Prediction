@@ -360,7 +360,7 @@ export function EuromillonesFeaturesPanel() {
                       <YAxis allowDecimals={false} />
                       <Tooltip
                         formatter={(value: number) => [value, 'Frecuencia']}
-                        labelFormatter={(label) => `Número ${label}`}
+                        labelFormatter={(label: string | number) => `Número ${label}`}
                       />
                       <Bar dataKey="count" fill="#3b82f6" barSize={6} />
                     </BarChart>
@@ -380,7 +380,7 @@ export function EuromillonesFeaturesPanel() {
                       <YAxis allowDecimals={false} />
                       <Tooltip
                         formatter={(value: number) => [value, 'Frecuencia']}
-                        labelFormatter={(label) => `Estrella ${label}`}
+                        labelFormatter={(label: string | number) => `Estrella ${label}`}
                       />
                       <Bar dataKey="count" fill="#eab308" barSize={10} />
                     </BarChart>
@@ -427,7 +427,7 @@ export function EuromillonesFeaturesPanel() {
                       dataKey="ts"
                       type="number"
                       domain={['dataMin', 'dataMax']}
-                      tickFormatter={(v) => {
+                      tickFormatter={(v: number) => {
                         const iso = new Date(v).toISOString().slice(0, 10); // YYYY-MM-DD
                         const [yy, mm, dd] = iso.split('-');
                         return `${dd}/${mm}/${yy.slice(2)}`;
@@ -463,7 +463,7 @@ export function EuromillonesFeaturesPanel() {
                       dataKey="ts"
                       type="number"
                       domain={['dataMin', 'dataMax']}
-                      tickFormatter={(v) => {
+                      tickFormatter={(v: number) => {
                         const iso = new Date(v).toISOString().slice(0, 10);
                         const [yy, mm, dd] = iso.split('-');
                         return `${dd}/${mm}/${yy.slice(2)}`;

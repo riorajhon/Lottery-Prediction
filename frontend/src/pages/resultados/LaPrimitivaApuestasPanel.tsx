@@ -188,7 +188,7 @@ export function LaPrimitivaApuestasPanel() {
                     }
                     return [value, name];
                   }}
-                  labelFormatter={(label) => `Fecha: ${label}`}
+                  labelFormatter={(label: string | number) => `Fecha: ${label}`}
                 />
                 <Legend />
                 <Line
@@ -237,14 +237,14 @@ export function LaPrimitivaApuestasPanel() {
                   }
                 />
                 <Tooltip
-                  formatter={(value: any, name: string) => {
+                  formatter={(value: any, _name: string) => {
                     const n = Number(value);
                     return [
                       Number.isNaN(n) ? value : n.toLocaleString('es-ES'),
                       'Apuestas',
                     ];
                   }}
-                  labelFormatter={(label) => `Fecha: ${label}`}
+                  labelFormatter={(label: string | number) => `Fecha: ${label}`}
                 />
                 <Legend />
                 <Line
@@ -280,7 +280,7 @@ export function LaPrimitivaApuestasPanel() {
                   }
                 />
                 <Tooltip
-                  formatter={(value: any, name: string) => {
+                  formatter={(value: any, _name: string) => {
                     const n = Number(value);
                     return [
                       Number.isNaN(n)
@@ -292,7 +292,7 @@ export function LaPrimitivaApuestasPanel() {
                       name,
                     ];
                   }}
-                  labelFormatter={(label) => `Fecha: ${label}`}
+                  labelFormatter={(label: string | number) => `Fecha: ${label}`}
                 />
                 <Legend />
                 <Line
@@ -327,7 +327,7 @@ export function LaPrimitivaApuestasPanel() {
                   }
                 />
                 <Tooltip
-                  formatter={(value: any, name: string) => {
+                  formatter={(value: any, _name: string) => {
                     const n = Number(value);
                     return [
                       Number.isNaN(n)
@@ -339,7 +339,7 @@ export function LaPrimitivaApuestasPanel() {
                       name,
                     ];
                   }}
-                  labelFormatter={(label) => `Fecha: ${label}`}
+                  labelFormatter={(label: string | number) => `Fecha: ${label}`}
                 />
                 <Legend />
                 <Line

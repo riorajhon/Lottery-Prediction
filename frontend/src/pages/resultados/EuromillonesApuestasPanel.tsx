@@ -178,7 +178,7 @@ export function EuromillonesApuestasPanel() {
                     }
                     return [value, name];
                   }}
-                  labelFormatter={(label) => `Fecha: ${label}`}
+                  labelFormatter={(label: string | number) => `Fecha: ${label}`}
                 />
                 <Legend />
                 <Line
@@ -227,14 +227,14 @@ export function EuromillonesApuestasPanel() {
                   }
                 />
                 <Tooltip
-                  formatter={(value: any, name: string) => {
+                  formatter={(value: any, _name: string) => {
                     const n = Number(value);
                     return [
                       Number.isNaN(n) ? value : n.toLocaleString('es-ES'),
                       'Apuestas',
                     ];
                   }}
-                  labelFormatter={(label) => `Fecha: ${label}`}
+                  labelFormatter={(label: string | number) => `Fecha: ${label}`}
                 />
                 <Legend />
                 <Line
@@ -270,7 +270,7 @@ export function EuromillonesApuestasPanel() {
                   }
                 />
                 <Tooltip
-                  formatter={(value: any, name: string) => {
+                  formatter={(value: any, _name: string) => {
                     const n = Number(value);
                     return [
                       Number.isNaN(n)
@@ -282,7 +282,7 @@ export function EuromillonesApuestasPanel() {
                       name,
                     ];
                   }}
-                  labelFormatter={(label) => `Fecha: ${label}`}
+                  labelFormatter={(label: string | number) => `Fecha: ${label}`}
                 />
                 <Legend />
                 <Line
@@ -317,7 +317,7 @@ export function EuromillonesApuestasPanel() {
                   }
                 />
                 <Tooltip
-                  formatter={(value: any, name: string) => {
+                  formatter={(value: any, _name: string) => {
                     const n = Number(value);
                     return [
                       Number.isNaN(n)
@@ -329,7 +329,7 @@ export function EuromillonesApuestasPanel() {
                       name,
                     ];
                   }}
-                  labelFormatter={(label) => `Fecha: ${label}`}
+                  labelFormatter={(label: string | number) => `Fecha: ${label}`}
                 />
                 <Legend />
                 <Line

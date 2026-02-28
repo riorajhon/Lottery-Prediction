@@ -298,7 +298,7 @@ export function ElGordoFeaturesPanel() {
                       <YAxis allowDecimals={false} />
                       <Tooltip
                         formatter={(value: number) => [value, 'Frecuencia']}
-                        labelFormatter={(label) => `Número ${label}`}
+                        labelFormatter={(label: string | number) => `Número ${label}`}
                       />
                       <Bar dataKey="count" fill="#7c3aed" barSize={6} />
                     </BarChart>
@@ -314,7 +314,7 @@ export function ElGordoFeaturesPanel() {
                       <YAxis allowDecimals={false} />
                       <Tooltip
                         formatter={(value: number) => [value, 'Frecuencia']}
-                        labelFormatter={(label) => `Clave ${label}`}
+                        labelFormatter={(label: string | number) => `Clave ${label}`}
                       />
                       <Bar dataKey="count" fill="#a855f7" barSize={10} />
                     </BarChart>
@@ -355,7 +355,7 @@ export function ElGordoFeaturesPanel() {
                       dataKey="ts"
                       type="number"
                       domain={['dataMin', 'dataMax']}
-                      tickFormatter={(v) => {
+                      tickFormatter={(v: number) => {
                         const iso = new Date(v).toISOString().slice(0, 10);
                         const [yy, mm, dd] = iso.split('-');
                         return `${dd}/${mm}/${yy.slice(2)}`;
@@ -388,7 +388,7 @@ export function ElGordoFeaturesPanel() {
                       dataKey="ts"
                       type="number"
                       domain={['dataMin', 'dataMax']}
-                      tickFormatter={(v) => {
+                      tickFormatter={(v: number) => {
                         const iso = new Date(v).toISOString().slice(0, 10);
                         const [yy, mm, dd] = iso.split('-');
                         return `${dd}/${mm}/${yy.slice(2)}`;

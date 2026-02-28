@@ -412,7 +412,7 @@ export function LaPrimitivaFeaturesPanel() {
                       <YAxis allowDecimals={false} />
                       <Tooltip
                         formatter={(value: number) => [value, 'Frecuencia']}
-                        labelFormatter={(label) => `Número ${label}`}
+                        labelFormatter={(label: string | number) => `Número ${label}`}
                       />
                       <Bar dataKey="count" fill="#16a34a" barSize={6} />
                     </BarChart>
@@ -430,10 +430,10 @@ export function LaPrimitivaFeaturesPanel() {
                       >
                         <XAxis dataKey="number" tick={{ fontSize: 10 }} />
                         <YAxis allowDecimals={false} />
-                        <Tooltip
-                          formatter={(value: number) => [value, 'Frecuencia']}
-                          labelFormatter={(label) => `C ${label}`}
-                        />
+                      <Tooltip
+                        formatter={(value: number) => [value, 'Frecuencia']}
+                        labelFormatter={(label: string | number) => `C ${label}`}
+                      />
                         <Bar dataKey="count" fill="#0d9488" barSize={6} />
                       </BarChart>
                     </ResponsiveContainer>
@@ -446,10 +446,10 @@ export function LaPrimitivaFeaturesPanel() {
                       >
                         <XAxis dataKey="number" tick={{ fontSize: 10 }} />
                         <YAxis allowDecimals={false} />
-                        <Tooltip
-                          formatter={(value: number) => [value, 'Frecuencia']}
-                          labelFormatter={(label) => `R ${label}`}
-                        />
+                      <Tooltip
+                        formatter={(value: number) => [value, 'Frecuencia']}
+                        labelFormatter={(label: string | number) => `R ${label}`}
+                      />
                         <Bar dataKey="count" fill="#ca8a04" barSize={16} />
                       </BarChart>
                     </ResponsiveContainer>
@@ -496,7 +496,7 @@ export function LaPrimitivaFeaturesPanel() {
                       dataKey="ts"
                       type="number"
                       domain={['dataMin', 'dataMax']}
-                      tickFormatter={(v) => {
+                      tickFormatter={(v: number) => {
                         const iso = new Date(v).toISOString().slice(0, 10);
                         const [yy, mm, dd] = iso.split('-');
                         return `${dd}/${mm}/${yy.slice(2)}`;
@@ -528,11 +528,11 @@ export function LaPrimitivaFeaturesPanel() {
                         domain={[1, 49]}
                         tick={{ fontSize: 10 }}
                       />
-                      <YAxis
-                        dataKey="ts"
-                        type="number"
-                        domain={['dataMin', 'dataMax']}
-                        tickFormatter={(v) => {
+                    <YAxis
+                      dataKey="ts"
+                      type="number"
+                      domain={['dataMin', 'dataMax']}
+                      tickFormatter={(v: number) => {
                           const iso = new Date(v).toISOString().slice(0, 10);
                           const [yy, mm, dd] = iso.split('-');
                           return `${dd}/${mm}/${yy.slice(2)}`;
@@ -560,11 +560,11 @@ export function LaPrimitivaFeaturesPanel() {
                         domain={[0, 9]}
                         tick={{ fontSize: 10 }}
                       />
-                      <YAxis
-                        dataKey="ts"
-                        type="number"
-                        domain={['dataMin', 'dataMax']}
-                        tickFormatter={(v) => {
+                    <YAxis
+                      dataKey="ts"
+                      type="number"
+                      domain={['dataMin', 'dataMax']}
+                      tickFormatter={(v: number) => {
                           const iso = new Date(v).toISOString().slice(0, 10);
                           const [yy, mm, dd] = iso.split('-');
                           return `${dd}/${mm}/${yy.slice(2)}`;
