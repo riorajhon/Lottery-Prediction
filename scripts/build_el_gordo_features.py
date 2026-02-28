@@ -335,7 +335,8 @@ def _build_pair_trio_history(draws: List[Draw]) -> None:
     print("Done. Pair/trio history is in collection: el_gordo_pair_trio_history")
 
 
-if __name__ == "__main__":
+def main() -> None:
+    """Rebuild El Gordo features, number history and pair/trio history from all draws."""
     mongo_client = MongoClient(MONGO_URI)
     try:
         all_draws = _load_draws(mongo_client)
@@ -344,8 +345,12 @@ if __name__ == "__main__":
 
     if not all_draws:
         print("No El Gordo draws found. Run backfill first.")
-        raise SystemExit(1)
+        return
 
     _build_features(all_draws)
     _build_number_history(all_draws)
     _build_pair_trio_history(all_draws)
+
+
+if __name__ == "__main__":
+    main()
