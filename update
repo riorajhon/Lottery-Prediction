@@ -1,31 +1,12 @@
-read Euromillones database (sort: fecha_sorteo, -1, with skip,limit(100)) untill all data
-loop all data
-    make first data : 
-        id: lottery object id
-        Main numbers (5 numbers per draw)
-        Lucky stars (2 numbers per draw)
-        Draw date
-        day(sunday, monday, tuesdy ...., satoday)
-        
-        Hot/cold numbers(upto 5)
-        Frequency counts(every 50 main numbers and Lucky starts)
-        Gap since last appearance
-        Pair/trio occurrence statistics    
-    and next number refer previouse data
-and save this to DB
+now i am working on la-primitiva
 
-on euromillones main result page extend add like this image
-on db exist aquestas,recaudacion,recaudacion_europea,prmios,escutinio_millon,premio_bote items
-using this make
+and i need also prediction page like euromillones
 
-apuestas
-premios
+but this is difference a bit 
+    main 6 numbers
+    bounuse number C
+    reintegro number R
 
-premio_bote
-escrutinio
+i have to make feature, history number, pair/trio model like euromillones
 
-from euromillones(model) get data with (Last 3 months / 6 months / 1 year / all.) 
-      only apuestas,premios, premio_bote, escrutinio for draw every chart
-and make new tab and draw chart on result page with your recommended 
-add some selection buttons for implement your recommended chart
-with this start coding
+so first give me your advice without coding

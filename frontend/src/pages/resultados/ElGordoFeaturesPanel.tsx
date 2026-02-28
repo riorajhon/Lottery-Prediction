@@ -10,8 +10,8 @@ import {
   ScatterChart,
   Scatter,
 } from 'recharts';
-import type { EuromillonesFeatureRow } from './useEuromillonesFeatures';
-import { useEuromillonesFeatures } from './useEuromillonesFeatures';
+import type { ElGordoFeatureRow } from './useElGordoFeatures';
+import { useElGordoFeatures } from './useElGordoFeatures';
 
 const WEEKDAY_ABBR = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
@@ -37,40 +37,29 @@ function NumbersPillList({ values }: { values: number[] }) {
   return <span>{values.join(' ')}</span>;
 }
 
-function EuromillonesFeaturesTableRow({
+function ElGordoFeaturesTableRow({
   row,
   onShowChart,
   onShowGapChart,
 }: {
-  row: EuromillonesFeatureRow;
-  onShowChart: (row: EuromillonesFeatureRow) => void;
-  onShowGapChart: (row: EuromillonesFeatureRow) => void;
+  row: ElGordoFeatureRow;
+  onShowChart: (row: ElGordoFeatureRow) => void;
+  onShowGapChart: (row: ElGordoFeatureRow) => void;
 }) {
   return (
     <tr>
       <td>{formatDateWithWeekday(row.draw_date, row.weekday)}</td>
       <td>
         <NumbersPillList values={row.main_numbers} />
-        {row.star_numbers && row.star_numbers.length > 0 && (
-          <>
-            {' '}
-            (
-            <NumbersPillList values={row.star_numbers} />
-            )
-          </>
-        )}
+        {row.clave != null && <> (Clave {row.clave})</>}
+      </td>
+      <td><NumbersPillList values={row.hot_main_numbers ?? []} /></td>
+      <td><NumbersPillList values={row.cold_main_numbers ?? []} /></td>
+      <td>
+        {row.hot_clave && row.hot_clave.length > 0 ? row.hot_clave.join(' ') : '—'}
       </td>
       <td>
-        <NumbersPillList values={row.hot_main_numbers ?? []} />
-      </td>
-      <td>
-        <NumbersPillList values={row.cold_main_numbers ?? []} />
-      </td>
-      <td>
-        <NumbersPillList values={row.hot_star_numbers ?? []} />
-      </td>
-      <td>
-        <NumbersPillList values={row.cold_star_numbers ?? []} />
+        {row.cold_clave && row.cold_clave.length > 0 ? row.cold_clave.join(' ') : '—'}
       </td>
       <td>
         <button
@@ -97,27 +86,19 @@ function EuromillonesFeaturesTableRow({
   );
 }
 
-export function EuromillonesFeaturesPanel() {
-  const {
-    rows,
-    loading,
-    error,
-    currentPage,
-    totalPages,
-    total,
-    nextPage,
-    prevPage,
-  } = useEuromillonesFeatures();
+export function ElGordoFeaturesPanel() {
+  const { rows, loading, error, currentPage, totalPages, total, nextPage, prevPage } =
+    useElGordoFeatures();
 
-  const [selectedRow, setSelectedRow] = useState<EuromillonesFeatureRow | null>(null);
+  const [selectedRow, setSelectedRow] = useState<ElGordoFeatureRow | null>(null);
   const [modalType, setModalType] = useState<'none' | 'freq' | 'gap'>('none');
   const [gapPointsMain, setGapPointsMain] = useState<{ number: number; ts: number; date: string }[] | null>(null);
-  const [gapPointsStar, setGapPointsStar] = useState<{ number: number; ts: number; date: string }[] | null>(null);
+  const [gapPointsClave, setGapPointsClave] = useState<{ number: number; ts: number; date: string }[] | null>(null);
   const [gapError, setGapError] = useState('');
   const [gapLoading, setGapLoading] = useState(false);
   const [historyLoaded, setHistoryLoaded] = useState(false);
   const [historyMain, setHistoryMain] = useState<{ number: number; dates: string[] }[] | null>(null);
-  const [historyStar, setHistoryStar] = useState<{ number: number; dates: string[] }[] | null>(null);
+  const [historyClave, setHistoryClave] = useState<{ number: number; dates: string[] }[] | null>(null);
 
   const closeModal = () => {
     setSelectedRow(null);
@@ -132,30 +113,46 @@ export function EuromillonesFeaturesPanel() {
     }));
   })();
 
-  const starBars = (() => {
-    if (!selectedRow?.star_frequency_counts) return [];
-    return selectedRow.star_frequency_counts.map((count, idx) => ({
-      number: idx + 1,
+  const claveBars = (() => {
+    if (!selectedRow?.clave_frequency_counts) return [];
+    return selectedRow.clave_frequency_counts.map((count, idx) => ({
+      number: idx,
       count: count ?? 0,
     }));
   })();
 
   const ensureHistoryLoaded = async () => {
-    if (historyLoaded && historyMain && historyStar) {
-      return { main: historyMain, star: historyStar };
+    if (historyLoaded && historyMain != null) {
+      return { main: historyMain, clave: historyClave ?? [] };
     }
     const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
-    const res = await fetch(`${API_URL}/api/euromillones/number-history`);
+    const res = await fetch(`${API_URL}/api/el-gordo/number-history`);
     const json = await res.json();
-    if (!res.ok) {
-      throw new Error(json.detail ?? res.statusText);
-    }
+    if (!res.ok) throw new Error(json.detail ?? res.statusText);
     const main = (json.main ?? []) as { number: number; dates: string[] }[];
-    const star = (json.star ?? []) as { number: number; dates: string[] }[];
+    const clave = (json.clave ?? []) as { number: number; dates: string[] }[];
     setHistoryMain(main);
-    setHistoryStar(star);
+    setHistoryClave(clave);
     setHistoryLoaded(true);
-    return { main, star };
+    return { main, clave };
+  };
+
+  const buildGapPoints = (
+    history: { number: number; dates: string[] }[],
+    startMs: number,
+    endMs: number
+  ) => {
+    const pts: { number: number; ts: number; date: string }[] = [];
+    for (const entry of history) {
+      for (const d of entry.dates) {
+        const [y, m, day] = d.split('-').map((v) => Number(v));
+        if (!y || !m || !day) continue;
+        const ms = Date.UTC(y, m - 1, day);
+        if (Number.isNaN(ms)) continue;
+        if (ms >= startMs && ms <= endMs) pts.push({ number: entry.number, ts: ms, date: d });
+      }
+    }
+    return pts;
   };
 
   const loadGapsForDate = async (endDateStr: string) => {
@@ -163,71 +160,38 @@ export function EuromillonesFeaturesPanel() {
     setGapError('');
     try {
       const loaded = await ensureHistoryLoaded();
-      const mainHistory = loaded.main;
-      const starHistory = loaded.star;
-
       const endMs = Date.parse(endDateStr);
-      if (Number.isNaN(endMs)) {
-        throw new Error('Fecha final no válida');
-      }
-      // 31 days window backwards from selected draw date (1 month)
+      if (Number.isNaN(endMs)) throw new Error('Fecha final no válida');
       const windowMs = 31 * 24 * 60 * 60 * 1000;
       const startMs = endMs - windowMs;
-
-      const buildPoints = (history: { number: number; dates: string[] }[]) => {
-        const pts: { number: number; ts: number; date: string }[] = [];
-        for (const entry of history) {
-          for (const d of entry.dates) {
-            const [y, m, day] = d.split('-').map((v) => Number(v));
-            if (!y || !m || !day) continue;
-            // Use UTC to avoid timezone shifts between stored date and axis labels
-            const ms = Date.UTC(y, m - 1, day);
-            if (Number.isNaN(ms)) continue;
-            if (ms >= startMs && ms <= endMs) {
-              pts.push({ number: entry.number, ts: ms, date: d });
-            }
-          }
-        }
-        return pts;
-      };
-
-      setGapPointsMain(buildPoints(mainHistory));
-      setGapPointsStar(buildPoints(starHistory));
+      setGapPointsMain(buildGapPoints(loaded.main, startMs, endMs));
+      setGapPointsClave(buildGapPoints(loaded.clave, startMs, endMs));
     } catch (e) {
       setGapError(e instanceof Error ? e.message : 'Error al cargar historial de gaps');
       setGapPointsMain(null);
-      setGapPointsStar(null);
+      setGapPointsClave(null);
     } finally {
       setGapLoading(false);
     }
   };
 
-  const filteredGapPoints = (points: { number: number; ts: number; date: string }[] | null) => {
-    return points ?? [];
-  };
+  const filteredGapPoints = (points: { number: number; ts: number; date: string }[] | null) =>
+    points ?? [];
 
-  // Load full number history once when component mounts
   useEffect(() => {
     void ensureHistoryLoaded();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
     <section className="card resultados-features-card">
       <h2 style={{ marginTop: 0, marginBottom: 'var(--space-md)', fontSize: '1rem' }}>
-        Euromillones prediction features
+        El Gordo — predicción
       </h2>
 
-      {error && (
-        <p style={{ color: 'var(--color-error)', marginTop: 0 }}>{error}</p>
-      )}
-
-      {loading && rows.length === 0 && (
-        <p style={{ marginTop: 0 }}>Cargando datos de predicción…</p>
-      )}
-
+      {error && <p style={{ color: 'var(--color-error)', marginTop: 0 }}>{error}</p>}
+      {loading && rows.length === 0 && <p style={{ marginTop: 0 }}>Cargando datos de predicción…</p>}
       {!loading && rows.length === 0 && !error && (
-        <p style={{ marginTop: 0 }}>No hay datos de predicción para Euromillones.</p>
+        <p style={{ marginTop: 0 }}>No hay datos de predicción para El Gordo.</p>
       )}
 
       {rows.length > 0 && (
@@ -236,17 +200,17 @@ export function EuromillonesFeaturesPanel() {
             <thead>
               <tr>
                 <th>Fecha</th>
-                <th>Resultado (mains + estrellas)</th>
+                <th>Resultado (5 + clave)</th>
                 <th>Hot mains</th>
                 <th>Cold mains</th>
-                <th>Hot stars</th>
-                <th>Cold stars</th>
+                <th>Hot clave</th>
+                <th>Cold clave</th>
                 <th>Todo</th>
               </tr>
             </thead>
             <tbody>
               {rows.map((row) => (
-                <EuromillonesFeaturesTableRow
+                <ElGordoFeaturesTableRow
                   key={row.draw_id}
                   row={row}
                   onShowChart={(r) => {
@@ -257,16 +221,14 @@ export function EuromillonesFeaturesPanel() {
                     setSelectedRow(r);
                     setModalType('gap');
                     setGapPointsMain(null);
-                    setGapPointsStar(null);
+                    setGapPointsClave(null);
                     setGapError('');
-                    const endDateStr = String(r.draw_date ?? '').split(' ')[0];
-                    void loadGapsForDate(endDateStr);
+                    void loadGapsForDate(String(r.draw_date ?? '').split(' ')[0]);
                   }}
                 />
               ))}
             </tbody>
           </table>
-
           <div className="resultados-features-pagination">
             <button type="button" disabled={currentPage <= 1} onClick={prevPage}>
               Anterior
@@ -274,11 +236,7 @@ export function EuromillonesFeaturesPanel() {
             <span>
               Página {currentPage} de {totalPages} ({total} sorteos)
             </span>
-            <button
-              type="button"
-              disabled={currentPage >= totalPages}
-              onClick={nextPage}
-            >
+            <button type="button" disabled={currentPage >= totalPages} onClick={nextPage}>
               Siguiente
             </button>
           </div>
@@ -288,10 +246,7 @@ export function EuromillonesFeaturesPanel() {
       <Drawer
         title={
           selectedRow
-            ? `Frecuencia Euromillones — ${formatDateWithWeekday(
-                selectedRow.draw_date,
-                selectedRow.weekday,
-              )}`
+            ? `Frecuencia El Gordo — ${formatDateWithWeekday(selectedRow.draw_date, selectedRow.weekday)}`
             : ''
         }
         placement="right"
@@ -305,84 +260,63 @@ export function EuromillonesFeaturesPanel() {
             <div className="resultados-features-hotcold">
               <div>
                 <div className="resultados-features-hotcold-title">
-                  <span className="resultados-features-hot-icon">🏆</span>
-                  Hot mains
+                  <span className="resultados-features-hot-icon">🏆</span> Hot mains
                 </div>
                 <div className="resultados-features-hotcold-values">
-                  {selectedRow.hot_main_numbers?.length
-                    ? selectedRow.hot_main_numbers.join(' ')
-                    : '—'}
+                  {selectedRow.hot_main_numbers?.length ? selectedRow.hot_main_numbers.join(' ') : '—'}
+                </div>
+              </div>
+              <div>
+                <div className="resultados-features-hotcold-title">Cold mains</div>
+                <div className="resultados-features-hotcold-values">
+                  {selectedRow.cold_main_numbers?.length ? selectedRow.cold_main_numbers.join(' ') : '—'}
                 </div>
               </div>
               <div>
                 <div className="resultados-features-hotcold-title">
-                  Cold mains
+                  <span className="resultados-features-hot-icon">🏆</span> Hot clave
                 </div>
                 <div className="resultados-features-hotcold-values">
-                  {selectedRow.cold_main_numbers?.length
-                    ? selectedRow.cold_main_numbers.join(' ')
-                    : '—'}
+                  {selectedRow.hot_clave?.length ? selectedRow.hot_clave.join(' ') : '—'}
                 </div>
               </div>
               <div>
-                <div className="resultados-features-hotcold-title">
-                  <span className="resultados-features-hot-icon">🏆</span>
-                  Hot stars
-                </div>
+                <div className="resultados-features-hotcold-title">Cold clave</div>
                 <div className="resultados-features-hotcold-values">
-                  {selectedRow.hot_star_numbers?.length
-                    ? selectedRow.hot_star_numbers.join(' ')
-                    : '—'}
-                </div>
-              </div>
-              <div>
-                <div className="resultados-features-hotcold-title">
-                  Cold stars
-                </div>
-                <div className="resultados-features-hotcold-values">
-                  {selectedRow.cold_star_numbers?.length
-                    ? selectedRow.cold_star_numbers.join(' ')
-                    : '—'}
+                  {selectedRow.cold_clave?.length ? selectedRow.cold_clave.join(' ') : '—'}
                 </div>
               </div>
             </div>
 
             <div className="resultados-features-fullcharts">
               <section>
-                <h4 className="resultados-features-chart-title">Números principales (1–50)</h4>
+                <h4 className="resultados-features-chart-title">Números principales (1–54)</h4>
                 <div style={{ width: '100%', height: 520 }}>
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart
-                      data={mainBars}
-                      margin={{ top: 10, right: 10, left: 10, bottom: 20 }}
-                    >
+                    <BarChart data={mainBars} margin={{ top: 10, right: 10, left: 10, bottom: 20 }}>
                       <XAxis dataKey="number" tick={{ fontSize: 10 }} />
                       <YAxis allowDecimals={false} />
                       <Tooltip
                         formatter={(value: number) => [value, 'Frecuencia']}
                         labelFormatter={(label) => `Número ${label}`}
                       />
-                      <Bar dataKey="count" fill="#3b82f6" barSize={6} />
+                      <Bar dataKey="count" fill="#7c3aed" barSize={6} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
               </section>
-
               <section>
-                <h4 className="resultados-features-chart-title">Estrellas (1–12)</h4>
+                <h4 className="resultados-features-chart-title">Clave (0–9)</h4>
                 <div style={{ width: '100%', height: 400 }}>
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart
-                      data={starBars}
-                      margin={{ top: 10, right: 10, left: 10, bottom: 20 }}
-                    >
+                    <BarChart data={claveBars} margin={{ top: 10, right: 10, left: 10, bottom: 20 }}>
                       <XAxis dataKey="number" tick={{ fontSize: 10 }} />
                       <YAxis allowDecimals={false} />
                       <Tooltip
                         formatter={(value: number) => [value, 'Frecuencia']}
-                        labelFormatter={(label) => `Estrella ${label}`}
+                        labelFormatter={(label) => `Clave ${label}`}
                       />
-                      <Bar dataKey="count" fill="#eab308" barSize={10} />
+                      <Bar dataKey="count" fill="#a855f7" barSize={10} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -393,70 +327,28 @@ export function EuromillonesFeaturesPanel() {
       </Drawer>
 
       <Drawer
-        title="Gap Euromillones — historial de apariciones"
+        title="Gap El Gordo — historial de apariciones"
         placement="right"
         width="100%"
         open={modalType === 'gap'}
         onClose={closeModal}
         bodyStyle={{ padding: 24 }}
       >
-        {gapError && (
-          <p style={{ color: 'var(--color-error)', marginTop: 0 }}>{gapError}</p>
-        )}
-        {gapLoading && (
-          <p style={{ marginTop: 0 }}>Cargando historial de apariciones…</p>
-        )}
+        {gapError && <p style={{ color: 'var(--color-error)', marginTop: 0 }}>{gapError}</p>}
+        {gapLoading && <p style={{ marginTop: 0 }}>Cargando historial de apariciones…</p>}
 
-        {gapPointsMain && gapPointsStar && (
+        {gapPointsMain != null && gapPointsClave != null && (
           <div className="resultados-features-fullcharts">
             <section>
-              <h4 className="resultados-features-chart-title">Números principales (1–50)</h4>
+              <h4 className="resultados-features-chart-title">Números principales (1–54)</h4>
               <div style={{ width: '100%', height: 460, marginBottom: 'var(--space-md)' }}>
                 <ResponsiveContainer width="100%" height="100%">
-                  <ScatterChart
-                    margin={{ top: 10, right: 10, left: 10, bottom: 20 }}
-                  >
+                  <ScatterChart margin={{ top: 10, right: 10, left: 10, bottom: 20 }}>
                     <XAxis
                       dataKey="number"
                       type="number"
                       name="Número"
-                      domain={[1, 50]}
-                      tick={{ fontSize: 10 }}
-                    />
-                    <YAxis
-                      dataKey="ts"
-                      type="number"
-                      domain={['dataMin', 'dataMax']}
-                      tickFormatter={(v) => {
-                        const iso = new Date(v).toISOString().slice(0, 10); // YYYY-MM-DD
-                        const [yy, mm, dd] = iso.split('-');
-                        return `${dd}/${mm}/${yy.slice(2)}`;
-                      }}
-                    />
-                    <Tooltip
-                      formatter={(_value: any, _name: any, props: any) => {
-                        const p = props?.payload as { number: number; date: string };
-                        return [`${p.date}`, `Número ${p.number}`];
-                      }}
-                    />
-                    <Scatter data={filteredGapPoints(gapPointsMain)} fill="#3b82f6" />
-                  </ScatterChart>
-                </ResponsiveContainer>
-              </div>
-            </section>
-
-            <section>
-              <h4 className="resultados-features-chart-title">Estrellas (1–12)</h4>
-              <div style={{ width: '100%', height: 380 }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <ScatterChart
-                    margin={{ top: 10, right: 10, left: 10, bottom: 20 }}
-                  >
-                    <XAxis
-                      dataKey="number"
-                      type="number"
-                      name="Estrella"
-                      domain={[1, 12]}
+                      domain={[1, 54]}
                       tick={{ fontSize: 10 }}
                     />
                     <YAxis
@@ -470,12 +362,45 @@ export function EuromillonesFeaturesPanel() {
                       }}
                     />
                     <Tooltip
-                      formatter={(_value: any, _name: any, props: any) => {
+                      formatter={(_: any, __: any, props: any) => {
                         const p = props?.payload as { number: number; date: string };
-                        return [`${p.date}`, `Estrella ${p.number}`];
+                        return [`${p.date}`, `Número ${p.number}`];
                       }}
                     />
-                    <Scatter data={filteredGapPoints(gapPointsStar)} fill="#eab308" />
+                    <Scatter data={filteredGapPoints(gapPointsMain)} fill="#7c3aed" />
+                  </ScatterChart>
+                </ResponsiveContainer>
+              </div>
+            </section>
+            <section>
+              <h4 className="resultados-features-chart-title">Clave (0–9)</h4>
+              <div style={{ width: '100%', height: 380 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <ScatterChart margin={{ top: 10, right: 10, left: 10, bottom: 20 }}>
+                    <XAxis
+                      dataKey="number"
+                      type="number"
+                      name="Clave"
+                      domain={[0, 9]}
+                      tick={{ fontSize: 10 }}
+                    />
+                    <YAxis
+                      dataKey="ts"
+                      type="number"
+                      domain={['dataMin', 'dataMax']}
+                      tickFormatter={(v) => {
+                        const iso = new Date(v).toISOString().slice(0, 10);
+                        const [yy, mm, dd] = iso.split('-');
+                        return `${dd}/${mm}/${yy.slice(2)}`;
+                      }}
+                    />
+                    <Tooltip
+                      formatter={(_: any, __: any, props: any) => {
+                        const p = props?.payload as { number: number; date: string };
+                        return [`${p.date}`, `Clave ${p.number}`];
+                      }}
+                    />
+                    <Scatter data={filteredGapPoints(gapPointsClave)} fill="#a855f7" />
                   </ScatterChart>
                 </ResponsiveContainer>
               </div>
@@ -486,4 +411,3 @@ export function EuromillonesFeaturesPanel() {
     </section>
   );
 }
-

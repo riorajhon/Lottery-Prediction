@@ -32,7 +32,7 @@ export function Dashboard() {
         const row = (data.features ?? [])[0] as EuromillonesFrequencySummary | undefined;
         setEuromillonesFreq(row ?? null);
       } catch (e) {
-        setFreqError(e instanceof Error ? e.message : 'Failed to load Euromillones frequencies');
+        setFreqError(e instanceof Error ? e.message : 'Error al cargar frecuencias Euromillones');
         setEuromillonesFreq(null);
       } finally {
         setFreqLoading(false);

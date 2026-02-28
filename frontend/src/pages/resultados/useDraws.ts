@@ -39,7 +39,7 @@ export function useDraws(lottery: string) {
       setDraws(data.draws ?? []);
       setTotal(data.total ?? 0);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to load draws');
+      setError(e instanceof Error ? e.message : 'Error al cargar sorteos');
       setDraws([]);
       setTotal(0);
     } finally {

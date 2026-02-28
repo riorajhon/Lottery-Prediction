@@ -135,8 +135,8 @@ export function ResultadosPage({ lottery }: ResultadosPageProps) {
   return (
     <div className={`resultados-page ${themeClass}`}>
       <div>
-        <nav className="resultados-breadcrumb" aria-label="Breadcrumb">
-          <Link to="/">home</Link>
+        <nav className="resultados-breadcrumb" aria-label="Ruta de navegación">
+          <Link to="/">inicio</Link>
           {' > '}
           <span>Resultados</span>
           {' > '}
@@ -335,7 +335,7 @@ function DrawCard({
           aria-expanded={expanded}
           aria-label={expanded ? 'Menos información' : 'Más información'}
         >
-          {expanded ? '− Info ▴' : '+ Info ▾'}
+          {expanded ? '− Menos ▴' : '+ Más ▾'}
         </button>
       </div>
       <div className="resultados-draw-card-body resultados-draw-card-column">

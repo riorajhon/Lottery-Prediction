@@ -3,34 +3,32 @@ import { useEffect, useState, useCallback } from 'react';
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
 const PAGE_SIZE = 20;
 
-export interface EuromillonesFeatureRow {
+export interface ElGordoFeatureRow {
   draw_id: string;
   draw_date: string;
   weekday?: string;
   main_numbers: number[];
-  star_numbers: number[];
+  clave?: number | null;
   hot_main_numbers?: number[];
   cold_main_numbers?: number[];
-  hot_star_numbers?: number[];
-  cold_star_numbers?: number[];
+  hot_clave?: number[];
+  cold_clave?: number[];
   prev_draw_id?: string | null;
   prev_draw_date?: string | null;
   prev_weekday?: string | null;
   prev_main_numbers?: number[];
-  prev_star_numbers?: number[];
+  prev_clave?: number | null;
   main_frequency_counts?: number[];
-  star_frequency_counts?: number[];
-  main_gap_draws?: (number | null)[];
-  star_gap_draws?: (number | null)[];
+  clave_frequency_counts?: number[];
 }
 
 interface ApiResponse {
-  features: EuromillonesFeatureRow[];
+  features: ElGordoFeatureRow[];
   total: number;
 }
 
-export function useEuromillonesFeatures() {
-  const [rows, setRows] = useState<EuromillonesFeatureRow[]>([]);
+export function useElGordoFeatures() {
+  const [rows, setRows] = useState<ElGordoFeatureRow[]>([]);
   const [total, setTotal] = useState(0);
   const [skip, setSkip] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -43,7 +41,7 @@ export function useEuromillonesFeatures() {
       const params = new URLSearchParams();
       params.set('limit', String(PAGE_SIZE));
       params.set('skip', String(skip));
-      const res = await fetch(`${API_URL}/api/euromillones/features?${params.toString()}`);
+      const res = await fetch(`${API_URL}/api/el-gordo/features?${params.toString()}`);
       const data: ApiResponse = await res.json();
       if (!res.ok) {
         setError((data as any).detail ?? res.statusText);
@@ -54,7 +52,7 @@ export function useEuromillonesFeatures() {
       setRows(data.features ?? []);
       setTotal(data.total ?? 0);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Error al cargar datos de Euromillones');
+      setError(e instanceof Error ? e.message : 'Error al cargar datos de El Gordo');
       setRows([]);
       setTotal(0);
     } finally {
@@ -93,4 +91,3 @@ export function useEuromillonesFeatures() {
     reload,
   };
 }
-

@@ -10,8 +10,8 @@ import {
   ScatterChart,
   Scatter,
 } from 'recharts';
-import type { EuromillonesFeatureRow } from './useEuromillonesFeatures';
-import { useEuromillonesFeatures } from './useEuromillonesFeatures';
+import type { LaPrimitivaFeatureRow } from './useLaPrimitivaFeatures';
+import { useLaPrimitivaFeatures } from './useLaPrimitivaFeatures';
 
 const WEEKDAY_ABBR = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
@@ -37,25 +37,27 @@ function NumbersPillList({ values }: { values: number[] }) {
   return <span>{values.join(' ')}</span>;
 }
 
-function EuromillonesFeaturesTableRow({
+function LaPrimitivaFeaturesTableRow({
   row,
   onShowChart,
   onShowGapChart,
 }: {
-  row: EuromillonesFeatureRow;
-  onShowChart: (row: EuromillonesFeatureRow) => void;
-  onShowGapChart: (row: EuromillonesFeatureRow) => void;
+  row: LaPrimitivaFeatureRow;
+  onShowChart: (row: LaPrimitivaFeatureRow) => void;
+  onShowGapChart: (row: LaPrimitivaFeatureRow) => void;
 }) {
   return (
     <tr>
       <td>{formatDateWithWeekday(row.draw_date, row.weekday)}</td>
       <td>
         <NumbersPillList values={row.main_numbers} />
-        {row.star_numbers && row.star_numbers.length > 0 && (
+        {(row.complementario != null || row.reintegro != null) && (
           <>
             {' '}
             (
-            <NumbersPillList values={row.star_numbers} />
+            {row.complementario != null ? `C ${row.complementario}` : 'C —'}
+            {', '}
+            {row.reintegro != null ? `R ${row.reintegro}` : 'R —'}
             )
           </>
         )}
@@ -67,10 +69,24 @@ function EuromillonesFeaturesTableRow({
         <NumbersPillList values={row.cold_main_numbers ?? []} />
       </td>
       <td>
-        <NumbersPillList values={row.hot_star_numbers ?? []} />
+        {row.hot_complementario && row.hot_complementario.length > 0
+          ? row.hot_complementario.join(' ')
+          : '—'}
       </td>
       <td>
-        <NumbersPillList values={row.cold_star_numbers ?? []} />
+        {row.cold_complementario && row.cold_complementario.length > 0
+          ? row.cold_complementario.join(' ')
+          : '—'}
+      </td>
+      <td>
+        {row.hot_reintegro && row.hot_reintegro.length > 0
+          ? row.hot_reintegro.join(' ')
+          : '—'}
+      </td>
+      <td>
+        {row.cold_reintegro && row.cold_reintegro.length > 0
+          ? row.cold_reintegro.join(' ')
+          : '—'}
       </td>
       <td>
         <button
@@ -97,7 +113,7 @@ function EuromillonesFeaturesTableRow({
   );
 }
 
-export function EuromillonesFeaturesPanel() {
+export function LaPrimitivaFeaturesPanel() {
   const {
     rows,
     loading,
@@ -107,17 +123,19 @@ export function EuromillonesFeaturesPanel() {
     total,
     nextPage,
     prevPage,
-  } = useEuromillonesFeatures();
+  } = useLaPrimitivaFeatures();
 
-  const [selectedRow, setSelectedRow] = useState<EuromillonesFeatureRow | null>(null);
+  const [selectedRow, setSelectedRow] = useState<LaPrimitivaFeatureRow | null>(null);
   const [modalType, setModalType] = useState<'none' | 'freq' | 'gap'>('none');
   const [gapPointsMain, setGapPointsMain] = useState<{ number: number; ts: number; date: string }[] | null>(null);
-  const [gapPointsStar, setGapPointsStar] = useState<{ number: number; ts: number; date: string }[] | null>(null);
+  const [gapPointsComplementario, setGapPointsComplementario] = useState<{ number: number; ts: number; date: string }[] | null>(null);
+  const [gapPointsReintegro, setGapPointsReintegro] = useState<{ number: number; ts: number; date: string }[] | null>(null);
   const [gapError, setGapError] = useState('');
   const [gapLoading, setGapLoading] = useState(false);
   const [historyLoaded, setHistoryLoaded] = useState(false);
   const [historyMain, setHistoryMain] = useState<{ number: number; dates: string[] }[] | null>(null);
-  const [historyStar, setHistoryStar] = useState<{ number: number; dates: string[] }[] | null>(null);
+  const [historyComplementario, setHistoryComplementario] = useState<{ number: number; dates: string[] }[] | null>(null);
+  const [historyReintegro, setHistoryReintegro] = useState<{ number: number; dates: string[] }[] | null>(null);
 
   const closeModal = () => {
     setSelectedRow(null);
@@ -132,30 +150,60 @@ export function EuromillonesFeaturesPanel() {
     }));
   })();
 
-  const starBars = (() => {
-    if (!selectedRow?.star_frequency_counts) return [];
-    return selectedRow.star_frequency_counts.map((count, idx) => ({
+  const compBars = (() => {
+    if (!selectedRow?.complementario_frequency_counts) return [];
+    return selectedRow.complementario_frequency_counts.map((count, idx) => ({
       number: idx + 1,
       count: count ?? 0,
     }));
   })();
 
+  const reintegroBars = (() => {
+    if (!selectedRow?.reintegro_frequency_counts) return [];
+    return selectedRow.reintegro_frequency_counts.map((count, idx) => ({
+      number: idx,
+      count: count ?? 0,
+    }));
+  })();
+
   const ensureHistoryLoaded = async () => {
-    if (historyLoaded && historyMain && historyStar) {
-      return { main: historyMain, star: historyStar };
+    if (historyLoaded && historyMain != null) {
+      return {
+        main: historyMain,
+        complementario: historyComplementario ?? [],
+        reintegro: historyReintegro ?? [],
+      };
     }
     const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
-    const res = await fetch(`${API_URL}/api/euromillones/number-history`);
+    const res = await fetch(`${API_URL}/api/la-primitiva/number-history`);
     const json = await res.json();
     if (!res.ok) {
       throw new Error(json.detail ?? res.statusText);
     }
     const main = (json.main ?? []) as { number: number; dates: string[] }[];
-    const star = (json.star ?? []) as { number: number; dates: string[] }[];
+    const complementario = (json.complementario ?? []) as { number: number; dates: string[] }[];
+    const reintegro = (json.reintegro ?? []) as { number: number; dates: string[] }[];
     setHistoryMain(main);
-    setHistoryStar(star);
+    setHistoryComplementario(complementario);
+    setHistoryReintegro(reintegro);
     setHistoryLoaded(true);
-    return { main, star };
+    return { main, complementario, reintegro };
+  };
+
+  const buildGapPoints = (history: { number: number; dates: string[] }[], startMs: number, endMs: number) => {
+    const pts: { number: number; ts: number; date: string }[] = [];
+    for (const entry of history) {
+      for (const d of entry.dates) {
+        const [y, m, day] = d.split('-').map((v) => Number(v));
+        if (!y || !m || !day) continue;
+        const ms = Date.UTC(y, m - 1, day);
+        if (Number.isNaN(ms)) continue;
+        if (ms >= startMs && ms <= endMs) {
+          pts.push({ number: entry.number, ts: ms, date: d });
+        }
+      }
+    }
+    return pts;
   };
 
   const loadGapsForDate = async (endDateStr: string) => {
@@ -163,40 +211,22 @@ export function EuromillonesFeaturesPanel() {
     setGapError('');
     try {
       const loaded = await ensureHistoryLoaded();
-      const mainHistory = loaded.main;
-      const starHistory = loaded.star;
 
       const endMs = Date.parse(endDateStr);
       if (Number.isNaN(endMs)) {
         throw new Error('Fecha final no válida');
       }
-      // 31 days window backwards from selected draw date (1 month)
       const windowMs = 31 * 24 * 60 * 60 * 1000;
       const startMs = endMs - windowMs;
 
-      const buildPoints = (history: { number: number; dates: string[] }[]) => {
-        const pts: { number: number; ts: number; date: string }[] = [];
-        for (const entry of history) {
-          for (const d of entry.dates) {
-            const [y, m, day] = d.split('-').map((v) => Number(v));
-            if (!y || !m || !day) continue;
-            // Use UTC to avoid timezone shifts between stored date and axis labels
-            const ms = Date.UTC(y, m - 1, day);
-            if (Number.isNaN(ms)) continue;
-            if (ms >= startMs && ms <= endMs) {
-              pts.push({ number: entry.number, ts: ms, date: d });
-            }
-          }
-        }
-        return pts;
-      };
-
-      setGapPointsMain(buildPoints(mainHistory));
-      setGapPointsStar(buildPoints(starHistory));
+      setGapPointsMain(buildGapPoints(loaded.main, startMs, endMs));
+      setGapPointsComplementario(buildGapPoints(loaded.complementario, startMs, endMs));
+      setGapPointsReintegro(buildGapPoints(loaded.reintegro, startMs, endMs));
     } catch (e) {
       setGapError(e instanceof Error ? e.message : 'Error al cargar historial de gaps');
       setGapPointsMain(null);
-      setGapPointsStar(null);
+      setGapPointsComplementario(null);
+      setGapPointsReintegro(null);
     } finally {
       setGapLoading(false);
     }
@@ -206,7 +236,6 @@ export function EuromillonesFeaturesPanel() {
     return points ?? [];
   };
 
-  // Load full number history once when component mounts
   useEffect(() => {
     void ensureHistoryLoaded();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -215,7 +244,7 @@ export function EuromillonesFeaturesPanel() {
   return (
     <section className="card resultados-features-card">
       <h2 style={{ marginTop: 0, marginBottom: 'var(--space-md)', fontSize: '1rem' }}>
-        Euromillones prediction features
+        La Primitiva prediction features
       </h2>
 
       {error && (
@@ -227,7 +256,7 @@ export function EuromillonesFeaturesPanel() {
       )}
 
       {!loading && rows.length === 0 && !error && (
-        <p style={{ marginTop: 0 }}>No hay datos de predicción para Euromillones.</p>
+        <p style={{ marginTop: 0 }}>No hay datos de predicción para La Primitiva.</p>
       )}
 
       {rows.length > 0 && (
@@ -236,17 +265,19 @@ export function EuromillonesFeaturesPanel() {
             <thead>
               <tr>
                 <th>Fecha</th>
-                <th>Resultado (mains + estrellas)</th>
+                <th>Resultado (6 + C + R)</th>
                 <th>Hot mains</th>
                 <th>Cold mains</th>
-                <th>Hot stars</th>
-                <th>Cold stars</th>
+                <th>Hot C</th>
+                <th>Cold C</th>
+                <th>Hot R</th>
+                <th>Cold R</th>
                 <th>Todo</th>
               </tr>
             </thead>
             <tbody>
               {rows.map((row) => (
-                <EuromillonesFeaturesTableRow
+                <LaPrimitivaFeaturesTableRow
                   key={row.draw_id}
                   row={row}
                   onShowChart={(r) => {
@@ -257,7 +288,8 @@ export function EuromillonesFeaturesPanel() {
                     setSelectedRow(r);
                     setModalType('gap');
                     setGapPointsMain(null);
-                    setGapPointsStar(null);
+                    setGapPointsComplementario(null);
+                    setGapPointsReintegro(null);
                     setGapError('');
                     const endDateStr = String(r.draw_date ?? '').split(' ')[0];
                     void loadGapsForDate(endDateStr);
@@ -288,7 +320,7 @@ export function EuromillonesFeaturesPanel() {
       <Drawer
         title={
           selectedRow
-            ? `Frecuencia Euromillones — ${formatDateWithWeekday(
+            ? `Frecuencia La Primitiva — ${formatDateWithWeekday(
                 selectedRow.draw_date,
                 selectedRow.weekday,
               )}`
@@ -326,22 +358,42 @@ export function EuromillonesFeaturesPanel() {
               </div>
               <div>
                 <div className="resultados-features-hotcold-title">
-                  <span className="resultados-features-hot-icon">🏆</span>
-                  Hot stars
+                  Hot C
                 </div>
                 <div className="resultados-features-hotcold-values">
-                  {selectedRow.hot_star_numbers?.length
-                    ? selectedRow.hot_star_numbers.join(' ')
+                  {selectedRow.hot_complementario?.length
+                    ? selectedRow.hot_complementario.join(' ')
                     : '—'}
                 </div>
               </div>
               <div>
                 <div className="resultados-features-hotcold-title">
-                  Cold stars
+                  Cold C
                 </div>
                 <div className="resultados-features-hotcold-values">
-                  {selectedRow.cold_star_numbers?.length
-                    ? selectedRow.cold_star_numbers.join(' ')
+                  {selectedRow.cold_complementario?.length
+                    ? selectedRow.cold_complementario.join(' ')
+                    : '—'}
+                </div>
+              </div>
+              <div>
+                <div className="resultados-features-hotcold-title">
+                  <span className="resultados-features-hot-icon">🏆</span>
+                  Hot R
+                </div>
+                <div className="resultados-features-hotcold-values">
+                  {selectedRow.hot_reintegro?.length
+                    ? selectedRow.hot_reintegro.join(' ')
+                    : '—'}
+                </div>
+              </div>
+              <div>
+                <div className="resultados-features-hotcold-title">
+                  Cold R
+                </div>
+                <div className="resultados-features-hotcold-values">
+                  {selectedRow.cold_reintegro?.length
+                    ? selectedRow.cold_reintegro.join(' ')
                     : '—'}
                 </div>
               </div>
@@ -349,7 +401,7 @@ export function EuromillonesFeaturesPanel() {
 
             <div className="resultados-features-fullcharts">
               <section>
-                <h4 className="resultados-features-chart-title">Números principales (1–50)</h4>
+                <h4 className="resultados-features-chart-title">Números principales (1–49)</h4>
                 <div style={{ width: '100%', height: 520 }}>
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart
@@ -362,29 +414,46 @@ export function EuromillonesFeaturesPanel() {
                         formatter={(value: number) => [value, 'Frecuencia']}
                         labelFormatter={(label) => `Número ${label}`}
                       />
-                      <Bar dataKey="count" fill="#3b82f6" barSize={6} />
+                      <Bar dataKey="count" fill="#16a34a" barSize={6} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
               </section>
-
               <section>
-                <h4 className="resultados-features-chart-title">Estrellas (1–12)</h4>
-                <div style={{ width: '100%', height: 400 }}>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart
-                      data={starBars}
-                      margin={{ top: 10, right: 10, left: 10, bottom: 20 }}
-                    >
-                      <XAxis dataKey="number" tick={{ fontSize: 10 }} />
-                      <YAxis allowDecimals={false} />
-                      <Tooltip
-                        formatter={(value: number) => [value, 'Frecuencia']}
-                        labelFormatter={(label) => `Estrella ${label}`}
-                      />
-                      <Bar dataKey="count" fill="#eab308" barSize={10} />
-                    </BarChart>
-                  </ResponsiveContainer>
+                <h4 className="resultados-features-chart-title">Complementario y Reintegro</h4>
+                <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
+                  <div style={{ width: '100%', height: 220 }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={compBars}
+                        margin={{ top: 10, right: 10, left: 10, bottom: 20 }}
+                      >
+                        <XAxis dataKey="number" tick={{ fontSize: 10 }} />
+                        <YAxis allowDecimals={false} />
+                        <Tooltip
+                          formatter={(value: number) => [value, 'Frecuencia']}
+                          labelFormatter={(label) => `C ${label}`}
+                        />
+                        <Bar dataKey="count" fill="#0d9488" barSize={6} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div style={{ width: '100%', height: 220 }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={reintegroBars}
+                        margin={{ top: 10, right: 10, left: 10, bottom: 20 }}
+                      >
+                        <XAxis dataKey="number" tick={{ fontSize: 10 }} />
+                        <YAxis allowDecimals={false} />
+                        <Tooltip
+                          formatter={(value: number) => [value, 'Frecuencia']}
+                          labelFormatter={(label) => `R ${label}`}
+                        />
+                        <Bar dataKey="count" fill="#ca8a04" barSize={16} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
                 </div>
               </section>
             </div>
@@ -393,7 +462,7 @@ export function EuromillonesFeaturesPanel() {
       </Drawer>
 
       <Drawer
-        title="Gap Euromillones — historial de apariciones"
+        title="Gap La Primitiva — historial de apariciones"
         placement="right"
         width="100%"
         open={modalType === 'gap'}
@@ -407,10 +476,10 @@ export function EuromillonesFeaturesPanel() {
           <p style={{ marginTop: 0 }}>Cargando historial de apariciones…</p>
         )}
 
-        {gapPointsMain && gapPointsStar && (
+        {gapPointsMain != null && gapPointsComplementario != null && gapPointsReintegro != null && (
           <div className="resultados-features-fullcharts">
             <section>
-              <h4 className="resultados-features-chart-title">Números principales (1–50)</h4>
+              <h4 className="resultados-features-chart-title">Números principales (1–49)</h4>
               <div style={{ width: '100%', height: 460, marginBottom: 'var(--space-md)' }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <ScatterChart
@@ -420,43 +489,7 @@ export function EuromillonesFeaturesPanel() {
                       dataKey="number"
                       type="number"
                       name="Número"
-                      domain={[1, 50]}
-                      tick={{ fontSize: 10 }}
-                    />
-                    <YAxis
-                      dataKey="ts"
-                      type="number"
-                      domain={['dataMin', 'dataMax']}
-                      tickFormatter={(v) => {
-                        const iso = new Date(v).toISOString().slice(0, 10); // YYYY-MM-DD
-                        const [yy, mm, dd] = iso.split('-');
-                        return `${dd}/${mm}/${yy.slice(2)}`;
-                      }}
-                    />
-                    <Tooltip
-                      formatter={(_value: any, _name: any, props: any) => {
-                        const p = props?.payload as { number: number; date: string };
-                        return [`${p.date}`, `Número ${p.number}`];
-                      }}
-                    />
-                    <Scatter data={filteredGapPoints(gapPointsMain)} fill="#3b82f6" />
-                  </ScatterChart>
-                </ResponsiveContainer>
-              </div>
-            </section>
-
-            <section>
-              <h4 className="resultados-features-chart-title">Estrellas (1–12)</h4>
-              <div style={{ width: '100%', height: 380 }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <ScatterChart
-                    margin={{ top: 10, right: 10, left: 10, bottom: 20 }}
-                  >
-                    <XAxis
-                      dataKey="number"
-                      type="number"
-                      name="Estrella"
-                      domain={[1, 12]}
+                      domain={[1, 49]}
                       tick={{ fontSize: 10 }}
                     />
                     <YAxis
@@ -472,12 +505,81 @@ export function EuromillonesFeaturesPanel() {
                     <Tooltip
                       formatter={(_value: any, _name: any, props: any) => {
                         const p = props?.payload as { number: number; date: string };
-                        return [`${p.date}`, `Estrella ${p.number}`];
+                        return [`${p.date}`, `Número ${p.number}`];
                       }}
                     />
-                    <Scatter data={filteredGapPoints(gapPointsStar)} fill="#eab308" />
+                    <Scatter data={filteredGapPoints(gapPointsMain)} fill="#16a34a" />
                   </ScatterChart>
                 </ResponsiveContainer>
+              </div>
+            </section>
+            <section>
+              <h4 className="resultados-features-chart-title">Complementario y Reintegro</h4>
+              <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
+                <div style={{ width: '100%', height: 260 }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <ScatterChart
+                      margin={{ top: 10, right: 10, left: 10, bottom: 20 }}
+                    >
+                      <XAxis
+                        dataKey="number"
+                        type="number"
+                        name="C"
+                        domain={[1, 49]}
+                        tick={{ fontSize: 10 }}
+                      />
+                      <YAxis
+                        dataKey="ts"
+                        type="number"
+                        domain={['dataMin', 'dataMax']}
+                        tickFormatter={(v) => {
+                          const iso = new Date(v).toISOString().slice(0, 10);
+                          const [yy, mm, dd] = iso.split('-');
+                          return `${dd}/${mm}/${yy.slice(2)}`;
+                        }}
+                      />
+                      <Tooltip
+                        formatter={(_value: any, _name: any, props: any) => {
+                          const p = props?.payload as { number: number; date: string };
+                          return [`${p.date}`, `C ${p.number}`];
+                        }}
+                      />
+                      <Scatter data={filteredGapPoints(gapPointsComplementario)} fill="#0d9488" />
+                    </ScatterChart>
+                  </ResponsiveContainer>
+                </div>
+                <div style={{ width: '100%', height: 260 }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <ScatterChart
+                      margin={{ top: 10, right: 10, left: 10, bottom: 20 }}
+                    >
+                      <XAxis
+                        dataKey="number"
+                        type="number"
+                        name="R"
+                        domain={[0, 9]}
+                        tick={{ fontSize: 10 }}
+                      />
+                      <YAxis
+                        dataKey="ts"
+                        type="number"
+                        domain={['dataMin', 'dataMax']}
+                        tickFormatter={(v) => {
+                          const iso = new Date(v).toISOString().slice(0, 10);
+                          const [yy, mm, dd] = iso.split('-');
+                          return `${dd}/${mm}/${yy.slice(2)}`;
+                        }}
+                      />
+                      <Tooltip
+                        formatter={(_value: any, _name: any, props: any) => {
+                          const p = props?.payload as { number: number; date: string };
+                          return [`${p.date}`, `R ${p.number}`];
+                        }}
+                      />
+                      <Scatter data={filteredGapPoints(gapPointsReintegro)} fill="#ca8a04" />
+                    </ScatterChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
             </section>
           </div>

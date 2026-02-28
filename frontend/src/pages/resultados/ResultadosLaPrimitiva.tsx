@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { ResultadosPage } from './ResultadosPage';
 import { LaPrimitivaApuestasPanel } from './LaPrimitivaApuestasPanel';
+import { LaPrimitivaFeaturesPanel } from './LaPrimitivaFeaturesPanel';
 
-type LaPrimitivaTab = 'results' | 'grafico';
+type LaPrimitivaTab = 'results' | 'prediction' | 'grafico';
 
 export function ResultadosLaPrimitiva() {
   const [activeTab, setActiveTab] = useState<LaPrimitivaTab>('results');
@@ -21,6 +22,15 @@ export function ResultadosLaPrimitiva() {
         </button>
         <button
           type="button"
+          className={`resultados-tab ${activeTab === 'prediction' ? 'resultados-tab--active' : ''}`}
+          role="tab"
+          aria-selected={activeTab === 'prediction'}
+          onClick={() => setActiveTab('prediction')}
+        >
+          Predicción
+        </button>
+        <button
+          type="button"
           className={`resultados-tab ${activeTab === 'grafico' ? 'resultados-tab--active' : ''}`}
           role="tab"
           aria-selected={activeTab === 'grafico'}
@@ -32,6 +42,11 @@ export function ResultadosLaPrimitiva() {
 
       <div className="resultados-tab-content">
         {activeTab === 'results' && <ResultadosPage lottery="la-primitiva" />}
+        {activeTab === 'prediction' && (
+          <div className="resultados-euromillones-features">
+            <LaPrimitivaFeaturesPanel />
+          </div>
+        )}
         {activeTab === 'grafico' && (
           <div className="resultados-euromillones-features">
             <LaPrimitivaApuestasPanel />

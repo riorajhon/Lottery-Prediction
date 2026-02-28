@@ -378,6 +378,7 @@ def _build_draw(doc: dict, game_id: str) -> dict:
     for k in DRAW_KEYS:
         v = doc.get(k)
         draw[k] = _item_to_json(v) if v is not None else None
+    draw["game_id"] = game_id
     draw["game_name"] = GAME_ID_TO_NAME.get(game_id, game_id)
     if draw.get("joker_combinacion") is None:
         millon = doc.get("millon") or {}
@@ -397,12 +398,14 @@ def get_draws(
     if db is None:
         raise HTTPException(500, detail="Database not connected")
     query = {}
-    if from_date or to_date:
+    from_ = (from_date or "").strip()
+    to_ = (to_date or "").strip()
+    if from_ or to_:
         query["fecha_sorteo"] = {}
-        if from_date:
-            query["fecha_sorteo"]["$gte"] = from_date + " 00:00:00"
-        if to_date:
-            query["fecha_sorteo"]["$lte"] = to_date + " 23:59:59"
+        if from_:
+            query["fecha_sorteo"]["$gte"] = from_ + " 00:00:00"
+        if to_:
+            query["fecha_sorteo"]["$lte"] = to_ + " 23:59:59"
 
     if lottery and lottery in GAME_IDS:
         coll_name = COLLECTIONS.get(GAME_IDS[lottery])
@@ -463,6 +466,60 @@ def get_euromillones_features(
         raise HTTPException(500, detail="Database not connected")
 
     coll = db["euromillones_draw_features"]
+    total = coll.count_documents({})
+
+    cursor = coll.find().sort("draw_date", -1).skip(skip).limit(limit)
+    docs = [_doc_to_json(doc) for doc in cursor]
+
+    return JSONResponse(content={"features": docs, "total": total})
+
+
+@app.get("/api/la-primitiva/features")
+def get_la_primitiva_features(
+    limit: int = Query(50, ge=1, le=200),
+    skip: int = Query(0, ge=0),
+):
+    """
+    Return per-draw La Primitiva feature rows from `la_primitiva_draw_features`.
+
+    Each document contains:
+      - main_numbers, complementario, reintegro
+      - draw_date, weekday
+      - hot/cold numbers
+      - frequency arrays
+      - previous-draw snapshot fields
+    """
+    if db is None:
+        raise HTTPException(500, detail="Database not connected")
+
+    coll = db["la_primitiva_draw_features"]
+    total = coll.count_documents({})
+
+    cursor = coll.find().sort("draw_date", -1).skip(skip).limit(limit)
+    docs = [_doc_to_json(doc) for doc in cursor]
+
+    return JSONResponse(content={"features": docs, "total": total})
+
+
+@app.get("/api/el-gordo/features")
+def get_el_gordo_features(
+    limit: int = Query(50, ge=1, le=200),
+    skip: int = Query(0, ge=0),
+):
+    """
+    Return per-draw El Gordo feature rows from `el_gordo_draw_features`.
+
+    Each document contains:
+      - main_numbers (5), clave (0-9)
+      - draw_date, weekday
+      - hot/cold numbers
+      - frequency arrays
+      - previous-draw snapshot fields
+    """
+    if db is None:
+        raise HTTPException(500, detail="Database not connected")
+
+    coll = db["el_gordo_draw_features"]
     total = coll.count_documents({})
 
     cursor = coll.find().sort("draw_date", -1).skip(skip).limit(limit)
@@ -815,6 +872,129 @@ def get_euromillones_number_history():
             target.append({"number": number, "dates": dates})
 
     return JSONResponse(content={"main": main, "star": star})
+
+
+@app.get("/api/la-primitiva/number-history")
+def get_la_primitiva_number_history():
+    """
+    Return full per-number appearance history for La Primitiva, grouped by type.
+
+    Response format:
+      {
+        "main": [
+          { "number": 1, "dates": ["2026-01-13", ...] },
+          ...
+        ],
+        "complementario": [
+          { "number": 1, "dates": ["2026-01-20", ...] },
+          ...
+        ],
+        "reintegro": [
+          { "number": 0, "dates": ["2026-01-20", ...] },
+          ...
+        ]
+      }
+    """
+    if db is None:
+        raise HTTPException(500, detail="Database not connected")
+
+    coll = db["la_primitiva_number_history"]
+
+    docs = list(
+        coll.find(
+            {},
+            projection={
+                "_id": 0,
+                "type": 1,
+                "number": 1,
+                "appearances.date": 1,
+            },
+        )
+    )
+
+    main: list[dict] = []
+    complementario: list[dict] = []
+    reintegro: list[dict] = []
+
+    for doc in docs:
+        t = doc.get("type")
+        number = doc.get("number")
+        appearances = doc.get("appearances") or []
+
+        dates_set: set[str] = set()
+        for appo in appearances:
+            date_str = (appo.get("date") or "").split(" ")[0]
+            if date_str:
+                dates_set.add(date_str)
+
+        dates = sorted(dates_set)
+
+        if t == "main":
+            main.append({"number": number, "dates": dates})
+        elif t == "complementario":
+            complementario.append({"number": number, "dates": dates})
+        elif t == "reintegro":
+            reintegro.append({"number": number, "dates": dates})
+
+    return JSONResponse(
+        content={
+            "main": main,
+            "complementario": complementario,
+            "reintegro": reintegro,
+        }
+    )
+
+
+@app.get("/api/el-gordo/number-history")
+def get_el_gordo_number_history():
+    """
+    Return full per-number appearance history for El Gordo, grouped by type.
+
+    Response format:
+      {
+        "main": [ { "number": 1, "dates": ["2026-01-13", ...] }, ... ],
+        "clave": [ { "number": 0, "dates": ["2026-01-20", ...] }, ... ]
+      }
+    """
+    if db is None:
+        raise HTTPException(500, detail="Database not connected")
+
+    coll = db["el_gordo_number_history"]
+
+    docs = list(
+        coll.find(
+            {},
+            projection={
+                "_id": 0,
+                "type": 1,
+                "number": 1,
+                "appearances.date": 1,
+            },
+        )
+    )
+
+    main: list[dict] = []
+    clave: list[dict] = []
+
+    for doc in docs:
+        t = doc.get("type")
+        number = doc.get("number")
+        appearances = doc.get("appearances") or []
+
+        dates_set: set[str] = set()
+        for appo in appearances:
+            date_str = (appo.get("date") or "").split(" ")[0]
+            if date_str:
+                dates_set.add(date_str)
+
+        dates = sorted(dates_set)
+
+        if t == "main":
+            main.append({"number": number, "dates": dates})
+        elif t == "clave":
+            clave.append({"number": number, "dates": dates})
+
+    return JSONResponse(content={"main": main, "clave": clave})
 
 
 @app.post("/api/scrape/daily")

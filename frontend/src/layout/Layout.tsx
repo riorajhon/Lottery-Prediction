@@ -26,9 +26,9 @@ export function Layout() {
     <div className="app">
       <header className="app-header">
         <Link to="/" className="app-logo">
-          <img src="/images/logo_loterias.svg" alt="Lottery Prediction" className="app-logo-img" />
+          <img src="/images/logo_loterias.svg" alt="Predicción Lotería" className="app-logo-img" />
         </Link>
-        <nav className={`app-nav ${menuOpen ? 'open' : ''}`} aria-label="Main">
+        <nav className={`app-nav ${menuOpen ? 'open' : ''}`} aria-label="Navegación principal">
           {navItems.map(({ to, label, icon }) => (
             <NavLink
               key={to}
@@ -55,7 +55,7 @@ export function Layout() {
         <button
           type="button"
           className="menu-toggle"
-          aria-label="Toggle menu"
+          aria-label="Abrir o cerrar menú"
           aria-expanded={menuOpen}
           onClick={() => setMenuOpen((prev) => !prev)}
         >

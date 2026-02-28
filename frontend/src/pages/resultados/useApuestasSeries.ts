@@ -44,7 +44,7 @@ export function useApuestasSeries(
         premio_bote: p.premio_bote ?? null,
       })));
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to load apuestas history');
+      setError(e instanceof Error ? e.message : 'Error al cargar histórico de apuestas');
       setPoints([]);
     } finally {
       setLoading(false);
